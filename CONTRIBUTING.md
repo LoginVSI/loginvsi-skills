@@ -199,7 +199,7 @@ Check for:
 
 ### Step 7: Test with Multiple Agents
 
-Before submitting, verify your skill works with at least two different agents:
+Before submitting, verify your skill works with at least two different agents. The primary test targets for this repository are **Claude Code** and **OpenAI Codex**:
 
 1. Install the skill in your agent's skill directory
 2. Start a new session
@@ -255,7 +255,7 @@ If running on a non-Windows platform:
 - [ ] `compatibility` field lists all environment requirements
 - [ ] No internal/proprietary references (package feeds, internal URLs, etc.)
 - [ ] No secrets, credentials, or API keys
-- [ ] Tested with at least two different AI coding agents
+- [ ] Tested with Claude Code and OpenAI Codex (primary targets)
 - [ ] `skills-ref validate` passes
 - [ ] README.md skills table updated (if adding a new skill)
 
@@ -272,8 +272,7 @@ List the keywords/intents that activate this skill.
 
 ### Agents tested
 - [ ] Claude Code
-- [ ] Codex
-- [ ] Cursor
+- [ ] OpenAI Codex
 - [ ] Other: ___
 
 ### Prerequisites
