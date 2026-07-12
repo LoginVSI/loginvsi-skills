@@ -1,0 +1,64 @@
+name: Validate Skills
+
+on:
+  push:
+    paths:
+      - 'skills/**'
+  pull_request:
+    paths:
+      - 'skills/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate all skills
+        run: |
+          exit_code=0
+          for dir in skills/login-enterprise-*/; do
+            echo "Validating $dir..."
+            if npx skills-ref validate "$dir"; then
+              echo "✓ $dir passed"
+            else
+              echo "✗ $dir failed"
+              exit_code=1
+            fi
+            echo ""
+          done
+          exit $exit_code
+
+      - name: Check SKILL.md body length
+        run: |
+          exit_code=0
+          for skill_md in skills/*/SKILL.md; do
+            # Count lines after second --- (end of frontmatter)
+            body_lines=$(awk '/^---$/{n++; next} n>=2' "$skill_md" | wc -l)
+            if [ "$body_lines" -gt 500 ]; then
+              echo "✗ $skill_md body is $body_lines lines (max 500)"
+              exit_code=1
+            else
+              echo "✓ $skill_md body is $body_lines lines"
+            fi
+          done
+          exit $exit_code
+
+      - name: Check directory name matches SKILL.md name
+        run: |
+          exit_code=0
+          for dir in skills/login-enterprise-*/; do
+            dir_name=$(basename "$dir")
+            skill_name=$(awk '/^name:/{print $2; exit}' "$dir/SKILL.md")
+            if [ "$dir_name" != "$skill_name" ]; then
+              echo "✗ Directory '$dir_name' does not match SKILL.md name '$skill_name'"
+              exit_code=1
+            else
+              echo "✓ $dir_name matches"
+            fi
+          done
+          exit $exit_code
