@@ -1,6 +1,11 @@
 ---
 name: login-enterprise-script-writer
 description: Use when a user wants a Login Enterprise application script for native Windows automation, NativeAutomationElement workflows, recorder-compatible built-in scripting functions, timer instrumentation, secure credential use, or Playwright-based web recorder functions. Generates a complete .cs script for the ScriptEditor/Engine and outputs ONLY the final script with no explanation.
+license: Apache-2.0
+compatibility: No specific requirements. Works on any platform.
+metadata:
+  author: loginvsi
+  version: "1.0"
 ---
 
 # Login Enterprise Script Writer
@@ -38,7 +43,7 @@ A script that validates clean still compiles with selectors that point at nothin
 ## Procedure
 
 1. **Check for an app map.** If the user provides an `app-map.json` (or one exists in the
-   catalog at `~/.claude/le-app-maps/` for the target app), read it and use the `controls[]`
+   agent's app-map catalog for the target app), read it and use the `controls[]`
    entries — specifically `suggestedFinder`, `xpath`, `className`, `controlType`, and `name` —
    instead of guessing identifiers. Note the map's `coverage.confidence` in your internal
    self-check; if confidence is low, mention that some selectors may need adjustment.

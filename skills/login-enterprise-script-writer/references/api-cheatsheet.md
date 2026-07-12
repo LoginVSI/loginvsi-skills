@@ -1,4 +1,4 @@
-# API cheatsheet (LoginPI.Engine.ScriptBase 3.1.611-LE-7698)
+# API cheatsheet (LoginPI.Engine.ScriptBase 3.1.611)
 
 Namespaces: `LoginPI.Engine.ScriptBase`, `LoginPI.Engine.ScriptBase.Components`.
 

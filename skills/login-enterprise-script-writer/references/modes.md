@@ -23,7 +23,7 @@ Prefer `FindControlWithXPath` unless the user asks for something specifically.
 ### Grounding with an app map
 
 If an `app-map.json` is available for the target app (from `login-enterprise-app-mapper` or the
-catalog at `~/.claude/le-app-maps/`), use its `controls[].suggestedFinder` calls directly —
+agent's app-map catalog), use its `controls[].suggestedFinder` calls directly —
 these contain real `xpath`, `className`, `name`, and `controlType` values observed from the live
 app. This replaces guessing. Note the map's `coverage.confidence`; if `"low"`, some controls may
 be missing and fallbacks may still be needed.
