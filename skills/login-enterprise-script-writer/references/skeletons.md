@@ -27,6 +27,20 @@ but may be blank.
 - `// URL:` — **required**, the starting URL.
 - `// PROFILE:` — **must exist** (value is optional).
 
+**Browser values and what they launch:**
+
+| `// BROWSER:` value | What the engine launches |
+|---------------------|-------------------------|
+| `chrome` | Installed Google Chrome (`C:\Program Files\Google\Chrome\...`) |
+| `edge` | Installed Microsoft Edge |
+| `edgechromium` | Installed Microsoft Edge (Chromium-based; same as `edge` in recent builds) |
+| `chromium` | Playwright's bundled Chromium (if installed via `playwright install chromium`) |
+| `firefox` | Installed Firefox or Playwright's bundled Firefox |
+| `webkit` | Playwright's bundled WebKit |
+
+The engine looks for installed browsers first. If you want to use Playwright's
+bundled browser, ensure it is installed: `playwright install chromium`.
+
 ### Web — Legacy CSS/Selenium
 ```
 // BROWSER:edgechromium
