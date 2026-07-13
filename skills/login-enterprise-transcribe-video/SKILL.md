@@ -100,3 +100,15 @@ Save the Markdown (and keep the `frames/` folder alongside it so images resolve)
 - **Too many near-identical frames?** Raise `--scene-threshold` (to ~0.4) and `--min-gap`.
 - **Tiny or blurry UI text?** Raise `--width` (e.g. `1920`) or set `--width 0` for the original resolution, then re-read the frames.
 - **Very long recording?** Raise `--max-frames`, or run the script on a trimmed clip if only part is relevant (`ffmpeg -ss START -to END -i in.mp4 -c copy clip.mp4`).
+
+## Troubleshooting
+
+**ffmpeg not found but is installed:**
+Some AI agents run commands in a subprocess that may not see recent PATH changes.
+- Restart your terminal or agent after installing ffmpeg.
+- Use explicit paths: `--ffmpeg "C:\path\to\ffmpeg.exe" --ffprobe "C:\path\to\ffprobe.exe"`
+- On Windows, check which binary is resolved: `where.exe ffmpeg`
+- The script prints its current PATH when it can't find the tool — this helps distinguish "not installed" from "not on this process's PATH".
+
+**Python `python` opens Microsoft Store:**
+Use the Windows Python launcher instead: `py extract_frames.py ...`

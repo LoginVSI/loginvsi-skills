@@ -38,20 +38,35 @@ def run(cmd):
     return subprocess.run(cmd, capture_output=True, text=True)
 
 
-def check_tools():
-    for tool in ("ffmpeg", "ffprobe"):
-        if shutil.which(tool) is None:
-            sys.exit(
-                f"ERROR: '{tool}' not found on PATH. Install ffmpeg:\n"
-                "  Windows: winget install Gyan.FFmpeg  (or run win_setup_and_capture.ps1 to auto-install)\n"
-                "  macOS:   brew install ffmpeg\n"
-                "  Ubuntu:  sudo apt install ffmpeg"
-            )
+def check_tools(ffmpeg_path=None, ffprobe_path=None):
+    ffmpeg = ffmpeg_path or shutil.which("ffmpeg")
+    ffprobe = ffprobe_path or shutil.which("ffprobe")
+    if not ffmpeg:
+        print("ERROR: ffmpeg not found.", file=sys.stderr)
+        print("", file=sys.stderr)
+        print("Possible causes:", file=sys.stderr)
+        print("  1. ffmpeg is not installed:", file=sys.stderr)
+        print("       Windows: winget install Gyan.FFmpeg", file=sys.stderr)
+        print("       macOS:   brew install ffmpeg", file=sys.stderr)
+        print("       Ubuntu:  sudo apt install ffmpeg", file=sys.stderr)
+        print("  2. ffmpeg is installed but not on this process's PATH.", file=sys.stderr)
+        print("     Try: --ffmpeg /path/to/ffmpeg --ffprobe /path/to/ffprobe", file=sys.stderr)
+        print("  3. PATH was modified after this shell/agent started.", file=sys.stderr)
+        print("     Try restarting your terminal or agent.", file=sys.stderr)
+        print("", file=sys.stderr)
+        print(f"Current PATH: {os.environ.get('PATH', '(not set)')}", file=sys.stderr)
+        sys.exit(1)
+    if not ffprobe:
+        print("ERROR: ffprobe not found. It is usually included with ffmpeg.", file=sys.stderr)
+        print("  Try: --ffprobe /path/to/ffprobe", file=sys.stderr)
+        print(f"Current PATH: {os.environ.get('PATH', '(not set)')}", file=sys.stderr)
+        sys.exit(1)
+    return ffmpeg, ffprobe
 
 
-def get_duration(video):
+def get_duration(video, ffprobe_bin="ffprobe"):
     r = run([
-        "ffprobe", "-v", "error", "-show_entries", "format=duration",
+        ffprobe_bin, "-v", "error", "-show_entries", "format=duration",
         "-of", "default=noprint_wrappers=1:nokey=1", video,
     ])
     try:
@@ -60,10 +75,10 @@ def get_duration(video):
         sys.exit(f"ERROR: could not read duration of {video}.\n{r.stderr}")
 
 
-def scene_timestamps(video, threshold):
+def scene_timestamps(video, threshold, ffmpeg_bin="ffmpeg"):
     """Return timestamps (seconds) where the scene score exceeds threshold."""
     r = run([
-        "ffmpeg", "-i", video,
+        ffmpeg_bin, "-i", video,
         "-vf", f"select='gt(scene,{threshold})',showinfo",
         "-vsync", "vfr", "-f", "null", "-",
     ])
@@ -100,11 +115,11 @@ def cap(timestamps, max_frames):
     return kept
 
 
-def extract_one(video, t, path, width):
+def extract_one(video, t, path, width, ffmpeg_bin="ffmpeg"):
     # -ss before -i = fast seek; re-decode a single frame at timestamp t.
     vf = f"scale={width}:-2" if width else "scale=iw:ih"
     r = run([
-        "ffmpeg", "-y", "-ss", f"{t}", "-i", video,
+        ffmpeg_bin, "-y", "-ss", f"{t}", "-i", video,
         "-frames:v", "1", "-vf", vf, path,
     ])
     return os.path.exists(path) and os.path.getsize(path) > 0, r.stderr
@@ -124,17 +139,23 @@ def main():
                     help="hard cap on number of frames (default 40)")
     ap.add_argument("--width", type=int, default=1280,
                     help="resize frame width in px, keeps aspect (0 = original)")
+    ap.add_argument("--ffmpeg", default=None,
+                    help="Explicit path to ffmpeg binary (use when ffmpeg is installed but not on PATH)")
+    ap.add_argument("--ffprobe", default=None,
+                    help="Explicit path to ffprobe binary (use when ffprobe is installed but not on PATH)")
     args = ap.parse_args()
 
-    check_tools()
+    ffmpeg_bin, ffprobe_bin = check_tools(
+        ffmpeg_path=args.ffmpeg, ffprobe_path=args.ffprobe
+    )
     if not os.path.isfile(args.video):
         sys.exit(f"ERROR: video not found: {args.video}")
 
-    duration = get_duration(args.video)
+    duration = get_duration(args.video, ffprobe_bin=ffprobe_bin)
     frames_dir = os.path.join(args.out, "frames")
     os.makedirs(frames_dir, exist_ok=True)
 
-    scene = scene_timestamps(args.video, args.scene_threshold)
+    scene = scene_timestamps(args.video, args.scene_threshold, ffmpeg_bin=ffmpeg_bin)
     interval = interval_timestamps(duration, args.interval)
 
     tagged = {round(t, 3): "scene" for t in scene}
@@ -159,7 +180,7 @@ def main():
         idx += 1
         fname = f"frame_{idx:04d}_t{t:.1f}s.png"
         fpath = os.path.join(frames_dir, fname)
-        ok, err = extract_one(args.video, t, fpath, args.width)
+        ok, err = extract_one(args.video, t, fpath, args.width, ffmpeg_bin=ffmpeg_bin)
         if not ok:
             idx -= 1
             continue
