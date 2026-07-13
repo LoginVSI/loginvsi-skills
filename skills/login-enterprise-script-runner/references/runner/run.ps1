@@ -140,13 +140,27 @@ $logDir = Join-Path ([System.IO.Path]::GetTempPath()) 'LoginPI\Logs'
 $log = Get-ChildItem -Path $logDir -Filter 'Engine *.txt' -ErrorAction SilentlyContinue |
        Sort-Object LastWriteTime -Descending | Select-Object -First 1
 
+# Try to detect log path from engine stdout if filesystem-based detection returned nothing
+$logFromStdout = $null
+if (-not $log) {
+    foreach ($line in $engineOut) {
+        if ($line -match '([A-Z]:\\[^\s]+\.log)') {
+            $candidate = $Matches[1]
+            if (Test-Path $candidate) {
+                $logFromStdout = $candidate
+                break
+            }
+        }
+    }
+}
+
 $summary = [ordered]@{
     success    = $verdict.success
     result     = $verdict.result
     exitCode   = $engineExit
     timers     = @($timers)
     resultsCsv = if ($csv) { $csv.FullName } else { $null }
-    logPath    = if ($log) { $log.FullName } else { $null }
+    logPath    = if ($log) { $log.FullName } elseif ($logFromStdout) { $logFromStdout } else { $null }
 }
 $summary | ConvertTo-Json -Depth 5
 
