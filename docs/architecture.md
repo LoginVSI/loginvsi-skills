@@ -39,8 +39,8 @@ to build the validation tooling (`le-validate.dll`) on first use.
 and report results. Requires Windows, Login Enterprise Engine (standalone) installed and
 running, and `le-validate.dll` already built (run `script-validator`'s `install.ps1` first).
 
-The `create-test` skill (coming soon, may be dropped) would orchestrate the full pipeline.
-See [PRD.md](PRD.md) for background.
+Any AI agent with these skills installed can orchestrate the full pipeline naturally by
+chaining the skills in sequence. See [PRD.md](PRD.md) for background.
 
 ## Skill Format
 

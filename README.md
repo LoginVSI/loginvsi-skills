@@ -32,7 +32,6 @@ Any agent implementing the [agentskills.io specification](https://agentskills.io
 | `login-enterprise-script-runner` | Execute a script on the standalone engine and report results | Available |
 | `login-enterprise-app-mapper` | Map a desktop app's UI tree or web page DOM into `app-map.json` | Available |
 | `login-enterprise-transcribe-video` | Convert screen recordings into step-by-step documentation | Available |
-| `login-enterprise-create-test` | Orchestrate the full test lifecycle: check environment, map app, write script, validate, run | Coming Soon |
 
 ## Quick Start
 
@@ -197,7 +196,7 @@ This detects ScriptEditor, the standalone engine, .NET 8 SDK, Python 3, Playwrig
  RUN    script-runner     --> did it actually drive the app?                         ← available now
 ```
 
-The `create-test` skill will orchestrate this entire flow. Each skill also works independently.
+Any AI agent with these skills installed can orchestrate the full flow naturally. Each skill also works independently.
 
 ## Examples
 

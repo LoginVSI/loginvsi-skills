@@ -32,7 +32,6 @@ Six AI agent skills packaged per the [agentskills.io specification](https://agen
 | `login-enterprise-script-runner` | Execute scripts on standalone engine | Available |
 | `login-enterprise-app-mapper` | Map desktop UI trees or web DOMs to `app-map.json` | Available |
 | `login-enterprise-transcribe-video` | Convert screen recordings to step-by-step docs | Available |
-| `login-enterprise-create-test` | Orchestrate full test lifecycle | Coming Soon |
 
 ## Skill Format (agentskills.io spec)
 
@@ -73,7 +72,4 @@ Claude Code, OpenAI Codex, and Gemini CLI are the primary supported agents. GitH
 - `login-enterprise-app-mapper` skill (desktop mapping requires Windows + Login Enterprise Engine + script-runner skill; web mapping requires Python 3 + Playwright)
 - `login-enterprise-transcribe-video` skill (requires Python 3 and ffmpeg)
 
-The map → write → validate → run pipeline is fully functional. `transcribe-video` is available as an independent utility skill.
-
-Remaining build phase:
-- `create-test` (may be dropped)
+The map → write → validate → run pipeline is fully functional. `transcribe-video` is available as an independent utility skill. Any AI agent with these skills installed can orchestrate the full workflow naturally.
