@@ -136,7 +136,7 @@ Exit codes:
    (see above), then validate as many scripts as you like without rebuilding:
 
    ```powershell
-   dotnet bin\Release\net8.0\le-validate.dll --script path\to\Script.cs --editor-dir "C:\Program Files\Login VSI\ScriptEditor"
+   dotnet references\validator\bin\Release\net8.0\le-validate.dll --script path\to\Script.cs --editor-dir "C:\Program Files\Login VSI\ScriptEditor"
    ```
 
 2. **Read the JSON output:**
