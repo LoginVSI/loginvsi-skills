@@ -58,7 +58,7 @@ $installed = 0
 
 # Claude Code
 if ($installClaude) {
-    $claudeSkillsDir = Join-Path $HOME '.claude' 'skills'
+    $claudeSkillsDir = Join-Path (Join-Path $HOME '.claude') 'skills'
     if (-not (Test-Path $claudeSkillsDir)) {
         New-Item -ItemType Directory -Path $claudeSkillsDir -Force | Out-Null
     }
