@@ -35,6 +35,16 @@ app map", or "find controls" for a desktop application or web page. Also activat
 when `login-enterprise-script-writer` reports it cannot find a control and the user
 wants to supply verified identifiers.
 
+## Safety
+
+**Before mapping a desktop app:**
+- Close any similarly named applications. The engine uses window title matching and
+  may attach to `Notepad++` when targeting `Notepad`, or `WordPad` when targeting `Word`.
+- The engine will stop (close) the attached application when the probe completes.
+  Unsaved work in the wrong app will be lost.
+- Use specific `mainWindowTitle` patterns (e.g., `"*Untitled - Notepad"` instead of
+  `"*Notepad*"`) to reduce false matches.
+
 ## Absolute rules
 
 1. **Only emit controls actually observed.** Never fabricate or guess identifiers.
