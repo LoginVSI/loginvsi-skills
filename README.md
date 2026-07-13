@@ -1,5 +1,9 @@
 # loginvsi-skills
 
+[![Validate Skills](https://github.com/LoginVSI/loginvsi-skills/actions/workflows/validate-skills.yml/badge.svg)](https://github.com/LoginVSI/loginvsi-skills/actions/workflows/validate-skills.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Agent Skills](https://img.shields.io/badge/format-agentskills.io-purple.svg)](https://agentskills.io/specification)
+
 AI coding agent skills for [Login Enterprise](https://www.loginvsi.com/) — generate automation scripts, validate them, run them on the engine, map application UIs, and document workflows.
 
 Built on the [Agent Skills specification](https://agentskills.io/specification). Works with any compatible AI coding agent.
