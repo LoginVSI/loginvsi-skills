@@ -89,6 +89,10 @@ the CSV is still valid. Check the `timers` array in the JSON output — if your 
 timers are present with values, the measured interaction succeeded even if the final
 verdict is `EndedWithErrors`.
 
+**Timer names in CSV:** Timer names are normalized to lowercase by the engine.
+`Load_Example` → `load_example`. This is expected — compare timer names
+case-insensitively when correlating script timers with CSV output.
+
 ## Confirm the runner is actually wired up
 
 Once per machine, run the bundled smoke test — it proves validate→run works end to end and that
