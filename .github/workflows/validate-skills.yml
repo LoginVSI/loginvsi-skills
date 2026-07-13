@@ -26,20 +26,23 @@ jobs:
             exit_code=1
           }
 
+          # Exclude this workflow file and .git from all scans
+          EXCLUDE="--exclude-dir=.git --exclude=validate-skills.yml"
+
           # API key prefixes
           for pattern in 'sk-[A-Za-z0-9]{20,}' 'ghp_[A-Za-z0-9]{36}' 'gho_[A-Za-z0-9]{36}' 'AKIA[0-9A-Z]{16}'; do
-            matches=$(grep -rn --exclude-dir=.git -E "$pattern" . 2>/dev/null || true)
+            matches=$(grep -rn $EXCLUDE -E "$pattern" . 2>/dev/null || true)
             [ -n "$matches" ] && fail_match "$matches"
           done
 
           # Generic assignment patterns (password/token/secret = '...' or "...")
           for pattern in "password\s*=\s*['\"][^'\"]{1,}" "token\s*=\s*['\"][^'\"]{1,}" "secret\s*=\s*['\"][^'\"]{1,}"; do
-            matches=$(grep -rn --exclude-dir=.git -iP "$pattern" . 2>/dev/null || true)
+            matches=$(grep -rn $EXCLUDE -iP "$pattern" . 2>/dev/null || true)
             [ -n "$matches" ] && fail_match "$matches"
           done
 
           # Base64-ish keys: an '=' sign followed immediately by 40+ alphanumeric chars
-          matches=$(grep -rn --exclude-dir=.git -E '=[A-Za-z0-9/+]{40,}' . 2>/dev/null || true)
+          matches=$(grep -rn $EXCLUDE -E '=[A-Za-z0-9/+]{40,}' . 2>/dev/null || true)
           [ -n "$matches" ] && fail_match "$matches"
 
           exit $exit_code
@@ -55,26 +58,28 @@ jobs:
             exit_code=1
           }
 
+          EXCLUDE="--exclude-dir=.git --exclude=validate-skills.yml"
+
           # ProGet (case-insensitive)
-          matches=$(grep -rn --exclude-dir=.git -i 'ProGet' . 2>/dev/null || true)
+          matches=$(grep -rn $EXCLUDE -i 'ProGet' . 2>/dev/null || true)
           [ -n "$matches" ] && fail_match "$matches"
 
           # *.loginvsi.com but NOT docs.loginvsi.com
-          matches=$(grep -rn --exclude-dir=.git -E '\.loginvsi\.com' . 2>/dev/null \
+          matches=$(grep -rn $EXCLUDE -E '\.loginvsi\.com' . 2>/dev/null \
             | grep -v 'docs\.loginvsi\.com' || true)
           [ -n "$matches" ] && fail_match "$matches"
 
           # .claude/ path references (not in warning/documentation contexts)
-          matches=$(grep -rn --exclude-dir=.git -E '(~\/|\\|\/)\.claude\/' . 2>/dev/null \
+          matches=$(grep -rn $EXCLUDE -E '(~\/|\\|\/)\.claude\/' . 2>/dev/null \
             | grep -iv 'warning\|note\|caution\|do not\|avoid' || true)
           [ -n "$matches" ] && fail_match "$matches"
 
           # Build tag pattern -LE-<digits>
-          matches=$(grep -rn --exclude-dir=.git -E '\-LE\-[0-9]+' . 2>/dev/null || true)
+          matches=$(grep -rn $EXCLUDE -E '\-LE\-[0-9]+' . 2>/dev/null || true)
           [ -n "$matches" ] && fail_match "$matches"
 
           # TFS references (case-insensitive)
-          matches=$(grep -rn --exclude-dir=.git -iE '(^|[^a-zA-Z])(TFS|tfs\.)' . 2>/dev/null || true)
+          matches=$(grep -rn $EXCLUDE -iE '(^|[^a-zA-Z])(TFS|tfs\.)' . 2>/dev/null || true)
           [ -n "$matches" ] && fail_match "$matches"
 
           exit $exit_code
@@ -164,5 +169,10 @@ jobs:
             Write-Host "No Pester test files found under skills/ — skipping."
             exit 0
           }
-          $results = Invoke-Pester -Path skills/ -Recurse -PassThru
-          if ($results.FailedCount -gt 0) { exit 1 }
+          $failed = 0
+          foreach ($tf in $testFiles) {
+            Write-Host "Running $($tf.FullName)..."
+            $result = Invoke-Pester -Path $tf.FullName -PassThru
+            if ($result.FailedCount -gt 0) { $failed += $result.FailedCount }
+          }
+          if ($failed -gt 0) { exit 1 }
