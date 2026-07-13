@@ -124,7 +124,7 @@ if ($python) {
     if ($playwrightVersion) {
         # Readiness = chromium is INSTALLED (files present), NOT launchable. Launching needs a
         # runtime session that the image-bake VM (Session 0) lacks; a real runner launches fine.
-        # Filesystem check only — never starts the playwright driver, so it can't fail to launch.
+        # Filesystem check only -- never starts the playwright driver, so it can't fail to launch.
         $pwBrowsers = if ($env:PLAYWRIGHT_BROWSERS_PATH -and $env:PLAYWRIGHT_BROWSERS_PATH -ne '0') { $env:PLAYWRIGHT_BROWSERS_PATH } else { Join-Path $env:LOCALAPPDATA 'ms-playwright' }
         if ((Test-Path $pwBrowsers) -and @(Get-ChildItem -Path $pwBrowsers -Directory -Filter 'chromium*' -ErrorAction SilentlyContinue).Count -gt 0) { $playwrightBrowser = 'chromium' }
     }
@@ -144,12 +144,12 @@ $ffprobeCmd = Get-Command ffprobe -ErrorAction SilentlyContinue
 
 $skills = [ordered]@{}
 
-# script-writer — no prerequisites
+# script-writer -- no prerequisites
 $skills['script-writer'] = @{
     ready = $true; needs = @(); prereqs = 'no prerequisites'
 }
 
-# script-validator — Windows + .NET 8 + ScriptEditor + built validator
+# script-validator -- Windows + .NET 8 + ScriptEditor + built validator
 $valNeeds = [System.Collections.Generic.List[string]]::new()
 if (-not $onWindows)     { $valNeeds.Add('Windows') }
 if (-not $dotnetVersion) { $valNeeds.Add('.NET 8 SDK (https://dotnet.microsoft.com/download/dotnet/8.0)') }
@@ -159,7 +159,7 @@ $skills['script-validator'] = @{
     ready = ($valNeeds.Count -eq 0); needs = $valNeeds; prereqs = '.NET 8 + ScriptEditor + validator built'
 }
 
-# script-runner — everything validator needs + engine
+# script-runner -- everything validator needs + engine
 $runNeeds = [System.Collections.Generic.List[string]]::new()
 if (-not $onWindows)     { $runNeeds.Add('Windows') }
 if (-not $dotnetVersion) { $runNeeds.Add('.NET 8 SDK') }
@@ -170,7 +170,7 @@ $skills['script-runner'] = @{
     ready = ($runNeeds.Count -eq 0); needs = $runNeeds; prereqs = '.NET 8 + ScriptEditor + engine'
 }
 
-# app-mapper (desktop) — Windows + engine + runner
+# app-mapper (desktop) -- Windows + engine + runner
 $mapDNeeds = [System.Collections.Generic.List[string]]::new()
 if (-not $onWindows)     { $mapDNeeds.Add('Windows') }
 if (-not $engineDir)     { $mapDNeeds.Add('standalone engine (EngineDir)') }
@@ -179,7 +179,7 @@ $skills['app-mapper-desktop'] = @{
     ready = ($mapDNeeds.Count -eq 0); needs = $mapDNeeds; prereqs = 'Windows + engine + runner'
 }
 
-# app-mapper (web) — Python 3 + playwright
+# app-mapper (web) -- Python 3 + playwright
 $mapWNeeds = [System.Collections.Generic.List[string]]::new()
 if (-not $python)              { $mapWNeeds.Add('Python 3 (https://python.org)') }
 if (-not $playwrightVersion)   { $mapWNeeds.Add('pip install playwright') }
@@ -188,7 +188,7 @@ $skills['app-mapper-web'] = @{
     ready = ($mapWNeeds.Count -eq 0); needs = $mapWNeeds; prereqs = 'Python 3 + playwright'
 }
 
-# transcribe-video — ffmpeg + Python 3
+# transcribe-video -- ffmpeg + Python 3
 $tvNeeds = [System.Collections.Generic.List[string]]::new()
 if (-not $ffmpegCmd)   { $tvNeeds.Add('ffmpeg (winget install Gyan.FFmpeg)') }
 if (-not $ffprobeCmd)  { $tvNeeds.Add('ffprobe (included with ffmpeg)') }
@@ -233,7 +233,7 @@ if ($Json) {
 
 Write-Host ""
 Write-Host "==================================================================="
-Write-Host " Login Enterprise Skills — Environment Check"
+Write-Host " Login Enterprise Skills -- Environment Check"
 Write-Host "==================================================================="
 Write-Host ""
 
