@@ -27,8 +27,8 @@ Any agent implementing the [agentskills.io specification](https://agentskills.io
 | `login-enterprise-script-validator` | Validate scripts against Login Enterprise's 8 Roslyn analyzer rules | Available |
 | `login-enterprise-script-runner` | Execute a script on the standalone engine and report results | Available |
 | `login-enterprise-app-mapper` | Map a desktop app's UI tree or web page DOM into `app-map.json` | Available |
+| `login-enterprise-transcribe-video` | Convert screen recordings into step-by-step documentation | Available |
 | `login-enterprise-create-test` | Orchestrate the full test lifecycle: check environment, map app, write script, validate, run | Coming Soon |
-| `login-enterprise-transcribe-video` | Convert screen recordings into step-by-step documentation | Coming Soon |
 
 ## Quick Start
 
@@ -78,6 +78,7 @@ ln -s "$(pwd)/skills/login-enterprise-script-writer" ~/.claude/skills/
 ln -s "$(pwd)/skills/login-enterprise-script-validator" ~/.claude/skills/
 ln -s "$(pwd)/skills/login-enterprise-script-runner" ~/.claude/skills/
 ln -s "$(pwd)/skills/login-enterprise-app-mapper" ~/.claude/skills/
+ln -s "$(pwd)/skills/login-enterprise-transcribe-video" ~/.claude/skills/
 ```
 
 ```powershell
@@ -86,6 +87,7 @@ New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-scr
 New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-script-validator" -Target "$PWD\skills\login-enterprise-script-validator"
 New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-script-runner" -Target "$PWD\skills\login-enterprise-script-runner"
 New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-app-mapper" -Target "$PWD\skills\login-enterprise-app-mapper"
+New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-transcribe-video" -Target "$PWD\skills\login-enterprise-transcribe-video"
 ```
 
 </details>
@@ -100,6 +102,7 @@ ln -s "$(pwd)/skills/login-enterprise-script-writer" .agent-skills/
 ln -s "$(pwd)/skills/login-enterprise-script-validator" .agent-skills/
 ln -s "$(pwd)/skills/login-enterprise-script-runner" .agent-skills/
 ln -s "$(pwd)/skills/login-enterprise-app-mapper" .agent-skills/
+ln -s "$(pwd)/skills/login-enterprise-transcribe-video" .agent-skills/
 ```
 
 </details>
@@ -115,6 +118,8 @@ The agent should list the installed skills and their capabilities.
 ## Prerequisites
 
 `login-enterprise-script-writer` has no prerequisites — it works on any platform with no additional tools required.
+
+`login-enterprise-transcribe-video` requires Python 3 and ffmpeg (both must be on your `PATH`). It works on any platform.
 
 `login-enterprise-script-validator` requires a Windows environment with the Login Enterprise toolchain installed:
 
@@ -132,7 +137,7 @@ The agent should list the installed skills and their capabilities.
 
 ## How Skills Work Together
 
-> `script-writer`, `script-validator`, `script-runner`, and `app-mapper` are now available. The map → write → validate → run flow is fully functional. Additional skills will be unlocked as they are released.
+> `script-writer`, `script-validator`, `script-runner`, `app-mapper`, and `transcribe-video` are now available. The map → write → validate → run flow is fully functional. `transcribe-video` works independently as a utility skill.
 
 ```
  MAP    app-mapper        --> app-map.json  (real UI identifiers from the live app)  ← available now
@@ -168,6 +173,9 @@ The `create-test` skill will orchestrate this entire flow. Each skill also works
 
 **Run a test:**
 > "Run my Script.cs on the Login Enterprise engine"
+
+**Transcribe a screen recording:**
+> "Transcribe my recording at C:\Recordings\session.mp4 into step-by-step documentation"
 
 ## Updating
 

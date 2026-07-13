@@ -22,6 +22,7 @@ ln -s "$(pwd)/skills/login-enterprise-script-writer" .agent-skills/
 ln -s "$(pwd)/skills/login-enterprise-script-validator" .agent-skills/
 ln -s "$(pwd)/skills/login-enterprise-script-runner" .agent-skills/
 ln -s "$(pwd)/skills/login-enterprise-app-mapper" .agent-skills/
+ln -s "$(pwd)/skills/login-enterprise-transcribe-video" .agent-skills/
 ```
 
 ### Windows (PowerShell as Administrator)
@@ -32,6 +33,7 @@ New-Item -ItemType SymbolicLink -Path ".agent-skills\login-enterprise-script-wri
 New-Item -ItemType SymbolicLink -Path ".agent-skills\login-enterprise-script-validator" -Target "$PWD\skills\login-enterprise-script-validator"
 New-Item -ItemType SymbolicLink -Path ".agent-skills\login-enterprise-script-runner" -Target "$PWD\skills\login-enterprise-script-runner"
 New-Item -ItemType SymbolicLink -Path ".agent-skills\login-enterprise-app-mapper" -Target "$PWD\skills\login-enterprise-app-mapper"
+New-Item -ItemType SymbolicLink -Path ".agent-skills\login-enterprise-transcribe-video" -Target "$PWD\skills\login-enterprise-transcribe-video"
 ```
 
 ## Verification

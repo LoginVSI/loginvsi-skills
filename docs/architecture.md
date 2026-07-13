@@ -12,8 +12,12 @@ VALIDATE script-validator --> pass/fail    (check against 8 Roslyn rules)       
 RUN    script-runner     --> results       (execute on standalone engine)            ← available
 ```
 
-`app-mapper`, `script-writer`, `script-validator`, and `script-runner` are all available.
+`app-mapper`, `script-writer`, `script-validator`, `script-runner`, and `transcribe-video` are all available.
 The full map → write → validate → run pipeline is functional. Each skill also works independently.
+
+**transcribe-video**: An independent utility skill. Convert screen recordings (`.mp4`, `.mov`,
+etc.) into step-by-step documentation. Requires Python 3 and ffmpeg on `PATH`. Works on any
+platform with no Login Enterprise installation required.
 
 **app-mapper**: Map a desktop application's UI control tree or a web page's DOM into
 `app-map.json`, producing real automation identifiers (AutomationId, Name, ClassName, XPath)
@@ -35,8 +39,8 @@ to build the validation tooling (`le-validate.dll`) on first use.
 and report results. Requires Windows, Login Enterprise Engine (standalone) installed and
 running, and `le-validate.dll` already built (run `script-validator`'s `install.ps1` first).
 
-Future skills (`create-test`, `transcribe-video`)
-will extend this pipeline. See [PRD.md](PRD.md) for the full planned flow.
+The `create-test` skill (coming soon, may be dropped) would orchestrate the full pipeline.
+See [PRD.md](PRD.md) for background.
 
 ## Skill Format
 
