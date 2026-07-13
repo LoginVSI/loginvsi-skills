@@ -41,28 +41,21 @@ if (-not $SkillsRoot) {
 # --- detection helpers ---------------------------------------------------------------------
 
 function Find-EditorRoot {
-    # Check standard install path first
+    # Only check the standard install path -- no recursive scanning.
+    # If ScriptEditor is elsewhere, the user must specify -EditorRoot.
     $standardPath = 'C:\Program Files\Login VSI\ScriptEditor'
     if (Test-Path (Join-Path $standardPath 'bin\ScriptAnalyzer.dll')) {
         return $standardPath
-    }
-    $roots = @($env:ProgramFiles, ${env:ProgramFiles(x86)}, $env:LOCALAPPDATA) |
-             Where-Object { $_ -and (Test-Path $_) }
-    foreach ($r in $roots) {
-        $dll = Get-ChildItem -Path $r -Recurse -Filter 'ScriptAnalyzer.dll' `
-               -ErrorAction SilentlyContinue | Select-Object -First 1
-        if ($dll) { return (Split-Path (Split-Path $dll.FullName -Parent) -Parent) }
     }
     return $null
 }
 
 function Find-EngineDir {
-    $roots = @($env:ProgramFiles, ${env:ProgramFiles(x86)}, $env:LOCALAPPDATA) |
-             Where-Object { $_ -and (Test-Path $_) }
-    foreach ($r in $roots) {
-        $exe = Get-ChildItem -Path $r -Recurse -Filter 'LoginEnterprise.Engine.Standalone.exe' `
-               -ErrorAction SilentlyContinue | Select-Object -First 1
-        if ($exe) { return (Split-Path $exe.FullName -Parent) }
+    # Engine lives inside the ScriptEditor directory.
+    # Only check the standard path -- no recursive scanning.
+    $standardPath = 'C:\Program Files\Login VSI\ScriptEditor\engine'
+    if (Test-Path (Join-Path $standardPath 'LoginEnterprise.Engine.Standalone.exe')) {
+        return $standardPath
     }
     return $null
 }
