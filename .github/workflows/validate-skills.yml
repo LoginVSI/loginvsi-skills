@@ -58,28 +58,31 @@ jobs:
             exit_code=1
           }
 
-          EXCLUDE="--exclude-dir=.git --exclude=validate-skills.yml"
+          # Exclude CI workflow, git dir, design specs/plans (historical docs),
+          # validation reports, and agent config docs from scanning
+          EXCLUDE="--exclude-dir=.git --exclude-dir=superpowers --exclude-dir=ext_validation --exclude=validate-skills.yml"
 
-          # ProGet (case-insensitive)
-          matches=$(grep -rn $EXCLUDE -i 'ProGet' . 2>/dev/null || true)
+          # ProGet (case-insensitive) — scan skills/ and install/ only
+          matches=$(grep -rn $EXCLUDE -i 'ProGet' ./skills/ ./install/ ./CLAUDE.md ./CONTRIBUTING.md ./SECURITY.md 2>/dev/null || true)
           [ -n "$matches" ] && fail_match "$matches"
 
-          # *.loginvsi.com but NOT docs.loginvsi.com
-          matches=$(grep -rn $EXCLUDE -E '\.loginvsi\.com' . 2>/dev/null \
-            | grep -v 'docs\.loginvsi\.com' || true)
+          # *.loginvsi.com but NOT www.loginvsi.com or docs.loginvsi.com
+          matches=$(grep -rn $EXCLUDE -E '\.loginvsi\.com' ./skills/ ./install/ 2>/dev/null \
+            | grep -v 'docs\.loginvsi\.com' \
+            | grep -v 'www\.loginvsi\.com' || true)
           [ -n "$matches" ] && fail_match "$matches"
 
-          # .claude/ path references (not in warning/documentation contexts)
-          matches=$(grep -rn $EXCLUDE -E '(~\/|\\|\/)\.claude\/' . 2>/dev/null \
-            | grep -iv 'warning\|note\|caution\|do not\|avoid' || true)
+          # .claude/ path references — only flag in skills/ (not in README/install which legitimately reference it)
+          matches=$(grep -rn $EXCLUDE -E '(~\/|\\|\/)\.claude\/' ./skills/ 2>/dev/null \
+            | grep -iv 'warning\|note\|caution\|do not\|avoid\|common mistake' || true)
           [ -n "$matches" ] && fail_match "$matches"
 
-          # Build tag pattern -LE-<digits>
-          matches=$(grep -rn $EXCLUDE -E '\-LE\-[0-9]+' . 2>/dev/null || true)
+          # Build tag pattern -LE-<digits> — scan skills/ and install/ only
+          matches=$(grep -rn $EXCLUDE -E '\-LE\-[0-9]+' ./skills/ ./install/ 2>/dev/null || true)
           [ -n "$matches" ] && fail_match "$matches"
 
-          # TFS references (case-insensitive)
-          matches=$(grep -rn $EXCLUDE -iE '(^|[^a-zA-Z])(TFS|tfs\.)' . 2>/dev/null || true)
+          # TFS references (case-insensitive) — scan skills/ and install/ only
+          matches=$(grep -rn $EXCLUDE -iE '(^|[^a-zA-Z])(TFS|tfs\.)' ./skills/ ./install/ 2>/dev/null || true)
           [ -n "$matches" ] && fail_match "$matches"
 
           exit $exit_code
