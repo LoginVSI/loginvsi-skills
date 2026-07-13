@@ -1,1 +1,19 @@
 .superpowers/
+
+# .NET build artifacts (validator builds locally per machine)
+bin/
+obj/
+*.pdb
+
+# Python
+__pycache__/
+*.pyc
+
+# Test/smoke output
+selftest-results.txt
+smoke-results.txt
+
+# App-map working files
+.app-maps/
+web-dump.json
+frames_out/
