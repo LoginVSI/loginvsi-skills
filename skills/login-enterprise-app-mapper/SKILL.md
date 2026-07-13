@@ -131,7 +131,7 @@ Key points:
 
 Invoke `login-enterprise-script-runner` with `-SkipValidation`:
 ```
-run.ps1 -ScriptPath "probe.cs" -EngineDir "C:\ScriptEditor\engine" -SkipValidation
+run.ps1 -Script "probe.cs" -EngineDir "C:\ScriptEditor\engine" -SkipValidation
 ```
 
 ### 6. Parse structured log output
@@ -212,7 +212,7 @@ returned `OK`; otherwise the first method that returned `OK`.
 }
 ```
 
-Full schema reference: `references/schema/app-map-v2.schema.json`
+Full schema reference: `references/schema/app-map-schema.md`
 
 ### Key fields
 
@@ -273,7 +273,7 @@ Map a web page's interactive elements using a **standalone Playwright probe**
 ### Map a web page
 
 ```
-cd references\web-probe
+cd references\mapper
 .\map-web.ps1 -Url "https://example.com"
 ```
 
