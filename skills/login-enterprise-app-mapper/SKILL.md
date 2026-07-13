@@ -1,0 +1,370 @@
+---
+name: login-enterprise-app-mapper
+description: >-
+  Map a desktop application's UI controls or a web page's interactive elements
+  by walking through a workflow step by step. For each action, tries multiple
+  finder strategies (FindAutomationElementByXPathOrInformation, FindControlWithXPath,
+  FindControl) and records which succeeded. Produces an app-map.json with verified
+  control identifiers and fallback finders. Maps accumulate across workflows.
+  Use when the user asks to map, discover, or identify UI elements in an application.
+license: Apache-2.0
+compatibility: >-
+  Desktop mapping requires Windows, Login Enterprise Engine (standalone), and the
+  login-enterprise-script-runner skill. Web mapping requires Python 3 and Playwright.
+metadata:
+  author: loginvsi
+  version: "2.0"
+---
+
+# Login Enterprise App Mapper
+
+Walk through a user-described workflow step by step, probing each action's
+target control against the live UI using multiple finder strategies. Produces
+an `app-map.json` with verified control identifiers and known fallbacks.
+Maps accumulate across workflows — run the mapper once per workflow, then
+pass the map to `login-enterprise-script-writer` for reliable scripts.
+
+This skill **discovers** identifiers. It does not generate user scripts
+(use `login-enterprise-script-writer`) and does not run user scripts
+(use `login-enterprise-script-runner`).
+
+## When to activate
+
+Activate when the user says "map", "discover", "identify UI elements", "create an
+app map", or "find controls" for a desktop application or web page. Also activate
+when `login-enterprise-script-writer` reports it cannot find a control and the user
+wants to supply verified identifiers.
+
+## Absolute rules
+
+1. **Only emit controls actually observed.** Never fabricate or guess identifiers.
+   If a finder fails and DumpHierarchy reveals nothing for a region, record the gap
+   in `coverage.notes`. Do not invent controls.
+2. **Never claim a map is complete.** Java apps, RDP windows, custom-draw regions,
+   and dynamically-created controls may be invisible to UIAutomation. State this in
+   `coverage`.
+3. **A desktop probe launches the real application** in the current interactive
+   Windows session. Warn the user before running.
+4. **Probe runs with `-SkipValidation`.** The probe script is generated and
+   controlled by the mapper — validation adds latency with no safety benefit.
+   This is intentional, not an oversight.
+5. **`FindAutomationElementByXPathOrInformation` is the primary finder.** It is
+   not deprecated. Use it first; fall back to `FindControlWithXPath` and
+   `FindControl` for additional data.
+
+## Prerequisites
+
+### Desktop mapping
+- **Windows** — the engine is .NET Framework 4.8.
+- `login-enterprise-script-runner` skill installed at the expected sibling path.
+- A ScriptEditor deployment with the standalone engine (`EngineDir`).
+
+### Web mapping
+- **Python 3** on PATH.
+- **Playwright**: `pip install playwright && playwright install chromium`.
+- No ScriptEditor, engine, or runner needed.
+
+## Procedure
+
+### 1. Gather workflow description
+
+Ask the user to describe the workflow in natural language, e.g.:
+> "Open File menu, click Open, type a path, click OK."
+
+### 2. Parse into discrete steps
+
+Convert each natural language action into a step with:
+- `label` — short human-readable description (e.g. "File menu")
+- `action` — `click`, `type`, `select`, etc.
+- `target` — best-guess control description (name, controlType, className)
+
+### 3. Check for an existing map
+
+Look for `<project>/.app-maps/<appname>.app-map.json` first, then
+`~/.login-enterprise/app-maps/<appname>.app-map.json`.
+
+If found, ask:
+> "An existing map for [app] has [N] controls from [workflows]. Add to it or start fresh?"
+
+### 4. Generate the probe script
+
+Generate a monolithic `.cs` probe (`ScriptBase` subclass) that walks every
+step in sequence. For each step:
+
+```csharp
+// Step N: <label>
+DumpHierarchy("C:\\temp\\mapper\\stepN_before.txt");
+Log("MAPPER_STEP|N|<label>|<action>");
+
+var f1 = FindAutomationElementByXPathOrInformation(
+    xpath: "<xpath>", automationId: "", className: "<cls>",
+    name: "<name>", controlType: "<type>", timeout: 5, continueOnError: true);
+Log("MAPPER_FINDER|N|FindAutomationElementByXPathOrInformation|"
+    + (f1 != null ? "OK" : "FAIL") + "|xpath=<xpath>;name=<name>;controlType=<type>");
+
+var f2 = MainWindow.FindControlWithXPath(
+    xPath: "<recorder-xpath>", timeout: 5, continueOnError: true);
+Log("MAPPER_FINDER|N|FindControlWithXPath|"
+    + (f2 != null ? "OK" : "FAIL") + "|xPath=<recorder-xpath>");
+
+var f3 = MainWindow.FindControl(
+    title: "<name>", className: "<cls>", timeout: 5, continueOnError: true);
+Log("MAPPER_FINDER|N|FindControl|"
+    + (f3 != null ? "OK" : "FAIL") + "|title=<name>;className=<cls>");
+
+// Perform action using best available finder
+if (f1 != null) f1.<Action>();
+else if (f2 != null) f2.<Action>();
+else if (f3 != null) f3.<Action>();
+else Log("MAPPER_STEP_FAIL|N|No finder succeeded");
+
+Wait(1);
+```
+
+Key points:
+- `continueOnError: true` on every finder — failure never aborts the probe.
+- `DumpHierarchy` before each step captures the live UI the finders work against.
+- Structured log prefixes (`MAPPER_STEP`, `MAPPER_FINDER`, `MAPPER_STEP_FAIL`)
+  enable reliable post-run parsing.
+
+### 5. Run the probe
+
+Invoke `login-enterprise-script-runner` with `-SkipValidation`:
+```
+run.ps1 -ScriptPath "probe.cs" -EngineDir "C:\ScriptEditor\engine" -SkipValidation
+```
+
+### 6. Parse structured log output
+
+After the run, extract lines matching the three prefixes:
+
+| Prefix | Fields (pipe-separated) |
+|--------|------------------------|
+| `MAPPER_STEP` | step number, label, action |
+| `MAPPER_FINDER` | step number, method, OK/FAIL, params |
+| `MAPPER_STEP_FAIL` | step number, reason |
+
+For each step, collect all `MAPPER_FINDER` lines to build the `finders` object.
+Set `preferredFinder` to `FindAutomationElementByXPathOrInformation` when it
+returned `OK`; otherwise the first method that returned `OK`.
+
+### 7. Merge into app-map.json
+
+1. Load existing map if present.
+2. For each control found in this probe run:
+   - If control `id` already exists: union-merge `finders` (add new successes,
+     keep existing), append workflow name to `discoveredBy`.
+   - If control is new: add to `controls[]`.
+3. Append workflow name to top-level `workflows[]`.
+4. Update `capturedAt` to now.
+5. Save to `.app-maps/<appname>.app-map.json` in the project directory.
+
+## App-map.json v2.0 schema
+
+```json
+{
+  "schemaVersion": "2.0",
+  "app": {
+    "name": "notepad",
+    "kind": "desktop",
+    "exePath": "C:\\Windows\\System32\\notepad.exe",
+    "mainWindowTitle": "*Notepad*"
+  },
+  "capturedAt": "2026-07-12T10:00:00Z",
+  "workflows": ["open-file", "save-as"],
+  "controls": [
+    {
+      "id": "file-menu",
+      "label": "File menu",
+      "controlType": "MenuItem",
+      "className": "MenuBar",
+      "name": "File",
+      "xpath": "/Menu/MenuItem",
+      "finders": {
+        "FindAutomationElementByXPathOrInformation": {
+          "status": "OK",
+          "params": {
+            "xpath": "/Menu/MenuItem",
+            "name": "File",
+            "controlType": "MenuItem",
+            "className": "",
+            "automationId": ""
+          }
+        },
+        "FindControlWithXPath": {
+          "status": "OK",
+          "params": { "xPath": "MenuItem:MenuBar/MenuItem" }
+        },
+        "FindControl": {
+          "status": "OK",
+          "params": { "title": "File", "className": "MenuItem" }
+        }
+      },
+      "preferredFinder": "FindAutomationElementByXPathOrInformation",
+      "discoveredBy": ["open-file", "save-as"]
+    }
+  ],
+  "coverage": {
+    "method": "DumpHierarchy",
+    "confidence": "high",
+    "notes": "Java/RDP controls may not be visible to UIAutomation"
+  }
+}
+```
+
+Full schema reference: `references/schema/app-map-v2.schema.json`
+
+### Key fields
+
+| Field | Description |
+|-------|-------------|
+| `id` | Stable kebab-case identifier derived from label; used for deduplication. |
+| `finders` | Every strategy tried, with `status` and exact `params`. |
+| `preferredFinder` | Strategy to use in generated scripts — `FindAutomationElementByXPathOrInformation` when it succeeds. |
+| `discoveredBy` | Workflows that found this control; grows via union merge across runs. |
+| `workflows` | All workflows mapped for this app (top-level). |
+
+## Catalog
+
+### Two-tier storage
+
+- **Project-local** (default): `.app-maps/` in the project directory. Maps live
+  alongside scripts and can be versioned with git.
+- **Global**: `~/.login-enterprise/app-maps/` shared across all projects.
+
+When looking up a map, check project-local first, then global.
+
+### Merge behavior
+
+Re-running the mapper for a new workflow merges into the existing map:
+- New controls are appended.
+- Existing controls gain new successful finders (union merge).
+- `discoveredBy` and `workflows` arrays are union-appended.
+
+### Import/export
+
+```powershell
+# Export project map to global catalog
+Export-AppMap -AppName "notepad" -To Global
+
+# Import global map into the current project
+Import-AppMap -AppName "notepad" -From Global
+```
+
+### Index format
+
+`~/.login-enterprise/app-maps/index.json` — one entry per map:
+```json
+[{
+  "name": "notepad",
+  "platform": "desktop",
+  "version": "unknown",
+  "capturedAt": "2026-07-12T10:00:00Z",
+  "confidence": "high",
+  "path": "notepad-desktop-unknown.app-map.json"
+}]
+```
+
+## Web backend
+
+Map a web page's interactive elements using a **standalone Playwright probe**
+(outside the LE engine — `WebScriptBase` has no DOM enumeration capability).
+
+### Map a web page
+
+```
+cd references\web-probe
+.\map-web.ps1 -Url "https://example.com"
+```
+
+Optional: `-AppName`, `-Browser` (chromium/firefox/webkit), `-OutputPath`,
+`-WaitSeconds`, `-Headless $false`, `-AppVersion`, `-CatalogDir`.
+
+### Web control format
+
+Web controls live in the same `controls[]` array with `kind: "web"`:
+
+```json
+{
+  "id": "learn-more-link",
+  "label": "Learn more",
+  "kind": "web",
+  "role": "a",
+  "tag": "a",
+  "selector": "a",
+  "suggestedLocator": "Locator(\"a\", innerText: \"Learn more\")",
+  "discoveredBy": ["homepage-nav"]
+}
+```
+
+`suggestedLocator` is a ready-to-use LE Playwright `Locator(...)` call.
+Web map `coverage.confidence` is `"medium"` — SPAs and auth-gated pages may
+not be fully captured.
+
+## DumpHierarchy format
+
+The engine's `DumpHierarchy` produces indented plain text (2 spaces per level):
+
+```
+(7D035E) Win32 Window:Notepad -- 'Untitled - Notepad'
+  (8F02D0) Pane:NotepadTextBox -- ''
+    (4F06FA) Document:RichEditD2DPT -- 'Text editor'
+  TitleBar -- ''
+    Button -- 'Close'
+```
+
+Each line: optional `(handle)`, then `ControlType[:ClassName]`, then `-- 'Name'`.
+The agent extracts `controlType`, `className`, `name`, derives `xpath` from
+nesting depth, and uses these to build finder parameters.
+
+`AutomationId` is not available in DumpHierarchy output — the `automationId`
+field in finder params is always empty string for desktop maps.
+
+## Bootstrap: first probe without prior data
+
+On the first mapping run (no existing map), generate finder parameters from
+best guesses based on the natural language description, e.g.:
+> "File menu" → `name: "File", controlType: "MenuItem"`
+
+After the probe runs, the DumpHierarchy files captured during the run provide
+the real control tree. If a finder failed, read the relevant dump file, locate
+the actual control, and generate a refined probe with corrected parameters.
+
+Common controls (menus, buttons, text fields) typically resolve on the first
+attempt. Unusual controls may need one refinement pass.
+
+## Integration
+
+### Script-writer
+
+When generating a script, `login-enterprise-script-writer` checks for an app
+map (project-local first, then global). If found, it uses `preferredFinder`
+params directly and generates fallback chains:
+
+```csharp
+// Primary
+var fileMenu = FindAutomationElementByXPathOrInformation(
+    xpath: "/Menu/MenuItem", name: "File", controlType: "MenuItem",
+    className: "", automationId: "", timeout: 5, continueOnError: true);
+// Fallback
+if (fileMenu == null)
+    fileMenu = MainWindow.FindControlWithXPath(
+        "MenuItem:MenuBar/MenuItem", timeout: 5);
+```
+
+### Script-runner
+
+The mapper uses `login-enterprise-script-runner` to execute probe scripts.
+Same sibling path dependency as the runner skill.
+
+## Common mistakes
+
+| Mistake | Consequence |
+|---------|-------------|
+| Claiming the map is complete | UIAutomation cannot see Java/RDP/custom-draw controls. Always qualify `coverage.confidence`. |
+| Running desktop mapper without the runner skill | The probe depends on `run.ps1` at the sibling path; the run will fail. |
+| Treating `FindAutomationElementByXPathOrInformation` as deprecated | It is the primary finder; use it first. |
+| Expecting `automationId` in desktop maps | DumpHierarchy does not expose it; the field is always empty string. |
+| Expecting web maps to capture SPA state | The web probe captures initial page load only; dynamic content may be missing. |
+| Skipping union merge when adding a workflow | New workflows must merge into the existing map, not overwrite it. |
+| Using `~/.claude/` as catalog storage | The global catalog lives at `~/.login-enterprise/app-maps/`, not `~/.claude/`. |
