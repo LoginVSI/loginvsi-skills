@@ -75,6 +75,11 @@ The engine needs a metadata header comment, or it throws:
    - `success:false` → report `result` and point the user at `logPath` for the engine log.
    - `result:"CompilationError"` → the engine could not compile it; re-check with the validator.
 
+   **Exit code semantics:** The engine's `exitCode` field uses Login Enterprise's internal
+   `ScriptResult` enum where `1 = Ended` (success). This is NOT a Unix-style exit code
+   where 0 means success. The `result` field (`"Ended"`) and the `success` field (`true`)
+   are the authoritative verdicts. Do not interpret `exitCode: 1` as a failure.
+
 3. **Only report success after `success:true`** (`result:"Ended"`; `run.ps1` itself exits 0 when
    it judges the run successful).
 
