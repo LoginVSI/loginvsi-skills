@@ -26,7 +26,7 @@ Any agent implementing the [agentskills.io specification](https://agentskills.io
 | `login-enterprise-script-writer` | Generate a `.cs` automation script from natural-language instructions | Available |
 | `login-enterprise-script-validator` | Validate scripts against Login Enterprise's 8 Roslyn analyzer rules | Available |
 | `login-enterprise-script-runner` | Execute a script on the standalone engine and report results | Available |
-| `login-enterprise-app-mapper` | Map a desktop app's UI tree or web page DOM into `app-map.json` | Coming Soon |
+| `login-enterprise-app-mapper` | Map a desktop app's UI tree or web page DOM into `app-map.json` | Available |
 | `login-enterprise-create-test` | Orchestrate the full test lifecycle: check environment, map app, write script, validate, run | Coming Soon |
 | `login-enterprise-transcribe-video` | Convert screen recordings into step-by-step documentation | Coming Soon |
 
@@ -77,6 +77,7 @@ Run without arguments for interactive selection.
 ln -s "$(pwd)/skills/login-enterprise-script-writer" ~/.claude/skills/
 ln -s "$(pwd)/skills/login-enterprise-script-validator" ~/.claude/skills/
 ln -s "$(pwd)/skills/login-enterprise-script-runner" ~/.claude/skills/
+ln -s "$(pwd)/skills/login-enterprise-app-mapper" ~/.claude/skills/
 ```
 
 ```powershell
@@ -84,6 +85,7 @@ ln -s "$(pwd)/skills/login-enterprise-script-runner" ~/.claude/skills/
 New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-script-writer" -Target "$PWD\skills\login-enterprise-script-writer"
 New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-script-validator" -Target "$PWD\skills\login-enterprise-script-validator"
 New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-script-runner" -Target "$PWD\skills\login-enterprise-script-runner"
+New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-app-mapper" -Target "$PWD\skills\login-enterprise-app-mapper"
 ```
 
 </details>
@@ -97,6 +99,7 @@ mkdir -p .agent-skills
 ln -s "$(pwd)/skills/login-enterprise-script-writer" .agent-skills/
 ln -s "$(pwd)/skills/login-enterprise-script-validator" .agent-skills/
 ln -s "$(pwd)/skills/login-enterprise-script-runner" .agent-skills/
+ln -s "$(pwd)/skills/login-enterprise-app-mapper" .agent-skills/
 ```
 
 </details>
@@ -122,22 +125,23 @@ The agent should list the installed skills and their capabilities.
 | Login Enterprise ScriptEditor at `C:\Program Files\Login VSI\ScriptEditor\` | script-validator, script-runner |
 | Login Enterprise Engine (standalone) installed and running | script-runner, app-mapper (desktop) |
 | `le-validate.dll` built (run `script-validator`'s `install.ps1` first) | script-runner |
+| script-runner skill installed | app-mapper (desktop) |
 | Python 3 | app-mapper (web), transcribe-video |
 | Playwright (`pip install playwright`) | app-mapper (web) |
 | ffmpeg | transcribe-video |
 
 ## How Skills Work Together
 
-> `script-writer`, `script-validator`, and `script-runner` are now available. The writer → validator → runner flow is fully functional. Additional skills will be unlocked as they are released.
+> `script-writer`, `script-validator`, `script-runner`, and `app-mapper` are now available. The map → write → validate → run flow is fully functional. Additional skills will be unlocked as they are released.
 
 ```
- MAP    app-mapper        --> app-map.json  (real UI identifiers from the live app)
+ MAP    app-mapper        --> app-map.json  (real UI identifiers from the live app)  ← available now
               │
- WRITE  script-writer     --> Script.cs     (uses app-map if available)  ← available now
+ WRITE  script-writer     --> Script.cs     (uses app-map if available)              ← available now
               │
- VALIDATE script-validator --> compiles? timers ok?  ← available now
+ VALIDATE script-validator --> compiles? timers ok?                                  ← available now
               │
- RUN    script-runner     --> did it actually drive the app?  ← available now
+ RUN    script-runner     --> did it actually drive the app?                         ← available now
 ```
 
 The `create-test` skill will orchestrate this entire flow. Each skill also works independently.
@@ -158,6 +162,9 @@ The `create-test` skill will orchestrate this entire flow. Each skill also works
 
 **Write and validate in one flow:**
 > "Write a Login Enterprise script for Notepad that types text and saves the file, then validate it"
+
+**Map an application:**
+> "Map the UI elements in Calculator so I can write a test script"
 
 **Run a test:**
 > "Run my Script.cs on the Login Enterprise engine"

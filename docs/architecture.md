@@ -3,18 +3,27 @@
 ## How Skills Relate
 
 ```
-WRITE  script-writer     --> Script.cs     (generate from natural language)  ← available
+MAP    app-mapper        --> app-map.json  (real UI identifiers from the live app)  ← available
          │
-VALIDATE script-validator --> pass/fail    (check against 8 Roslyn rules)    ← available
+WRITE  script-writer     --> Script.cs     (generate from natural language)         ← available
          │
-RUN    script-runner     --> results       (execute on standalone engine)     ← available
+VALIDATE script-validator --> pass/fail    (check against 8 Roslyn rules)           ← available
+         │
+RUN    script-runner     --> results       (execute on standalone engine)            ← available
 ```
 
-`script-writer`, `script-validator`, and `script-runner` are all available. The full
-writer → validator → runner pipeline is functional. Each skill also works independently.
+`app-mapper`, `script-writer`, `script-validator`, and `script-runner` are all available.
+The full map → write → validate → run pipeline is functional. Each skill also works independently.
+
+**app-mapper**: Map a desktop application's UI control tree or a web page's DOM into
+`app-map.json`, producing real automation identifiers (AutomationId, Name, ClassName, XPath)
+before script writing begins. Desktop mapping requires Windows, Login Enterprise Engine
+(standalone), and the script-runner skill. Web mapping requires Python 3 and Playwright
+(`pip install playwright`).
 
 **script-writer**: Generate a `.cs` automation script from natural-language instructions.
-Works on any platform with no additional tools required.
+Works on any platform with no additional tools required. Accepts an `app-map.json` produced
+by app-mapper to use accurate control identifiers.
 
 **script-validator**: Validate a script against Login Enterprise's 8 Roslyn analyzer rules.
 Requires Windows, .NET 8 SDK, and ScriptEditor installed at
@@ -26,7 +35,7 @@ to build the validation tooling (`le-validate.dll`) on first use.
 and report results. Requires Windows, Login Enterprise Engine (standalone) installed and
 running, and `le-validate.dll` already built (run `script-validator`'s `install.ps1` first).
 
-Future skills (`app-mapper`, `create-test`, `transcribe-video`)
+Future skills (`create-test`, `transcribe-video`)
 will extend this pipeline. See [PRD.md](PRD.md) for the full planned flow.
 
 ## Skill Format
