@@ -31,11 +31,27 @@ def probe(url, browser_type="chromium", headless=True, wait_seconds=2, out_path=
         if launcher is None:
             sys.exit(f"ERROR: unknown browser type '{browser_type}'. Use chromium, firefox, or webkit.")
 
-        browser = launcher.launch(headless=headless)
+        try:
+            browser = launcher.launch(headless=headless)
+        except Exception as e:
+            sys.exit(
+                f"ERROR: failed to launch {browser_type}.\n"
+                f"  {e}\n"
+                f"Ensure the browser is installed: playwright install {browser_type}"
+            )
+
         page = browser.new_page()
 
-        print(f"Navigating to {url}...")
-        page.goto(url, wait_until="networkidle", timeout=30000)
+        try:
+            print(f"Navigating to {url}...")
+            page.goto(url, wait_until="networkidle", timeout=30000)
+        except Exception as e:
+            browser.close()
+            sys.exit(
+                f"ERROR: failed to navigate to {url}.\n"
+                f"  {e}\n"
+                f"Check the URL is correct and the site is reachable."
+            )
 
         if wait_seconds > 0:
             page.wait_for_timeout(wait_seconds * 1000)
@@ -45,47 +61,59 @@ def probe(url, browser_type="chromium", headless=True, wait_seconds=2, out_path=
 
         # Aria snapshot — YAML-like tree of accessible elements
         print("Capturing aria snapshot...")
-        aria_snapshot = page.locator("body").aria_snapshot()
+        try:
+            aria_snapshot = page.locator("body").aria_snapshot()
+        except Exception as e:
+            print(f"Warning: aria snapshot failed ({e}), continuing without it.")
+            aria_snapshot = ""
 
         # Interactive elements via JS evaluation
         print("Enumerating DOM elements...")
-        elements = page.evaluate("""() => {
-            const selectors = 'a, button, input, select, textarea, [role], ' +
-                'h1, h2, h3, h4, h5, h6, label, img, nav, main, footer, ' +
-                'header, section, article, form, table, th, td, li, [aria-label]';
-            const els = document.querySelectorAll(selectors);
-            const seen = new Set();
-            const results = [];
+        try:
+            elements = page.evaluate("""() => {
+                const selectors = 'a, button, input, select, textarea, [role], ' +
+                    'h1, h2, h3, h4, h5, h6, label, img, nav, main, footer, ' +
+                    'header, section, article, form, table, th, td, li, [aria-label]';
+                const els = document.querySelectorAll(selectors);
+                const seen = new Set();
+                const results = [];
 
-            for (const el of els) {
-                // Build a reasonable CSS selector
-                let selector = el.tagName.toLowerCase();
-                if (el.id) {
-                    selector = '#' + el.id;
-                } else if (el.className && typeof el.className === 'string' && el.className.trim()) {
-                    selector += '.' + el.className.trim().split(/\\s+/).join('.');
+                for (const el of els) {
+                    // Build a reasonable CSS selector
+                    let selector = el.tagName.toLowerCase();
+                    if (el.id) {
+                        selector = '#' + el.id;
+                    } else if (el.className && typeof el.className === 'string' && el.className.trim()) {
+                        selector += '.' + el.className.trim().split(/\\s+/).join('.');
+                    }
+
+                    // Deduplicate by selector + text
+                    const text = (el.innerText || '').slice(0, 200).trim();
+                    const key = selector + '|' + text;
+                    if (seen.has(key)) continue;
+                    seen.add(key);
+
+                    results.push({
+                        tag: el.tagName.toLowerCase(),
+                        role: el.getAttribute('role') || '',
+                        name: el.getAttribute('aria-label') || '',
+                        text: text,
+                        id: el.id || '',
+                        className: (typeof el.className === 'string' ? el.className : '') || '',
+                        type: el.type || '',
+                        href: el.href || '',
+                        selector: selector
+                    });
                 }
-
-                // Deduplicate by selector + text
-                const text = (el.innerText || '').slice(0, 200).trim();
-                const key = selector + '|' + text;
-                if (seen.has(key)) continue;
-                seen.add(key);
-
-                results.push({
-                    tag: el.tagName.toLowerCase(),
-                    role: el.getAttribute('role') || '',
-                    name: el.getAttribute('aria-label') || '',
-                    text: text,
-                    id: el.id || '',
-                    className: (typeof el.className === 'string' ? el.className : '') || '',
-                    type: el.type || '',
-                    href: el.href || '',
-                    selector: selector
-                });
-            }
-            return results;
-        }""")
+                return results;
+            }""")
+        except Exception as e:
+            browser.close()
+            sys.exit(
+                f"ERROR: failed to enumerate DOM elements.\n"
+                f"  {e}\n"
+                f"The page may use content security policies that block evaluation."
+            )
 
         dump = {
             "url": final_url,
