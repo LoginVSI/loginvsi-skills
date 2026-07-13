@@ -115,6 +115,14 @@ Open your AI coding agent and ask:
 
 The agent should list the installed skills and their capabilities.
 
+### 4. Run the environment check
+
+```powershell
+.\install\check-setup.ps1
+```
+
+This detects ScriptEditor, the standalone engine, .NET 8 SDK, Python 3, Playwright, and ffmpeg, then reports which skills are ready to use. Pass `-Json` for machine-readable output.
+
 ## Prerequisites
 
 `login-enterprise-script-writer` has no prerequisites — it works on any platform with no additional tools required.
