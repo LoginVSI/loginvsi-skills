@@ -23,11 +23,11 @@ function ConvertFrom-DumpHierarchy {
        window handle, not a stable AutomationId property. automationId is set to empty string
        since the dump format does not expose it. #>
     [CmdletBinding()]
-    param([Parameter(Mandatory)][string]$DumpPath)
+    param([Parameter(Mandatory)][string]$Path)
 
-    if (-not (Test-Path $DumpPath)) { return @() }
+    if (-not (Test-Path $Path)) { return @() }
 
-    $raw = Get-Content -Path $DumpPath -Raw
+    $raw = Get-Content -Path $Path -Raw
     if (-not $raw) { return @() }
 
     # Join continuation lines (name spanning multiple lines ends with a closing quote)
@@ -78,12 +78,13 @@ function ConvertFrom-DumpHierarchy {
                 if ($cn) { "$ct`:$cn" } else { $ct }
             }) -join '/'
 
-            # Build suggestedFinder using MainWindow.FindControlWithXPath
-            # For root window (depth 0), xpath is empty - use MainWindow directly
-            $finder = if ($xpath) {
-                "MainWindow.FindControlWithXPath(xPath: `"$xpath`")"
+            # Build suggestedFinder using FindAutomationElementByXPathOrInformation
+            # For root window (depth 0), use MainWindow directly
+            # For other controls, use FindAutomationElementByXPathOrInformation with all available parameters
+            $finder = if ($depth -eq 0) {
+                "MainWindow"
             } else {
-                "MainWindow"  # This IS the MainWindow
+                "FindAutomationElementByXPathOrInformation(xpath: `"$xpath`", automationId: `"`", className: `"$className`", name: `"$nameCleaned`", controlType: `"$controlType`")"
             }
 
             $controls.Add([pscustomobject]@{

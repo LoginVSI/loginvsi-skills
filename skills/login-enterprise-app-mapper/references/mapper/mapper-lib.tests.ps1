@@ -23,43 +23,45 @@ Describe 'ConvertFrom-DumpHierarchy' {
     }
 
     It 'parses controls from the dump file' {
-        $controls = @(ConvertFrom-DumpHierarchy -DumpPath $script:dumpFile)
+        $controls = @(ConvertFrom-DumpHierarchy -Path $script:dumpFile)
         $controls.Count | Should -BeGreaterOrEqual 2
     }
     It 'extracts controlType and className' {
-        $controls = @(ConvertFrom-DumpHierarchy -DumpPath $script:dumpFile)
+        $controls = @(ConvertFrom-DumpHierarchy -Path $script:dumpFile)
         $doc = $controls | Where-Object { $_.controlType -eq 'Document' }
         $doc | Should -Not -BeNullOrEmpty
         $doc.className | Should -Be 'RichEditD2DPT'
         $doc.name      | Should -Be 'Text editor'
     }
     It 'handles entries with no className (no colon)' {
-        $controls = @(ConvertFrom-DumpHierarchy -DumpPath $script:dumpFile)
+        $controls = @(ConvertFrom-DumpHierarchy -Path $script:dumpFile)
         $tb = $controls | Where-Object { $_.controlType -eq 'TitleBar' }
         $tb | Should -Not -BeNullOrEmpty
         $tb.className | Should -Be ''
     }
     It 'computes xpath from nesting' {
-        $controls = @(ConvertFrom-DumpHierarchy -DumpPath $script:dumpFile)
+        $controls = @(ConvertFrom-DumpHierarchy -Path $script:dumpFile)
         $doc = $controls | Where-Object { $_.controlType -eq 'Document' }
         $doc.xpath | Should -Be 'Pane:NotepadTextBox/Document:RichEditD2DPT'
     }
-    It 'generates suggestedFinder with FindControlWithXPath' {
-        $controls = @(ConvertFrom-DumpHierarchy -DumpPath $script:dumpFile)
+    It 'generates suggestedFinder with FindAutomationElementByXPathOrInformation' {
+        $controls = @(ConvertFrom-DumpHierarchy -Path $script:dumpFile)
         $doc = $controls | Where-Object { $_.controlType -eq 'Document' }
-        $doc.suggestedFinder | Should -Match 'FindControlWithXPath'
-        $doc.suggestedFinder | Should -Match '"Pane:NotepadTextBox/Document:RichEditD2DPT"'
+        $doc.suggestedFinder | Should -Match 'FindAutomationElementByXPathOrInformation'
+        $doc.suggestedFinder | Should -Match 'xpath: "Pane:NotepadTextBox/Document:RichEditD2DPT"'
+        $doc.suggestedFinder | Should -Match 'className: "RichEditD2DPT"'
+        $doc.suggestedFinder | Should -Match 'controlType: "Document"'
     }
     It 'sets automationId to empty string (not available in dump format)' {
-        $controls = @(ConvertFrom-DumpHierarchy -DumpPath $script:dumpFile)
+        $controls = @(ConvertFrom-DumpHierarchy -Path $script:dumpFile)
         $controls[0].automationId | Should -Be ''
     }
     It 'returns empty array for missing file' {
-        $controls = @(ConvertFrom-DumpHierarchy -DumpPath (Join-Path $TestDrive 'nope.txt'))
+        $controls = @(ConvertFrom-DumpHierarchy -Path (Join-Path $TestDrive 'nope.txt'))
         $controls.Count | Should -Be 0
     }
     It 'includes the root window element' {
-        $controls = @(ConvertFrom-DumpHierarchy -DumpPath $script:dumpFile)
+        $controls = @(ConvertFrom-DumpHierarchy -Path $script:dumpFile)
         $win = $controls | Where-Object { $_.controlType -eq 'Win32 Window' }
         $win | Should -Not -BeNullOrEmpty
     }
