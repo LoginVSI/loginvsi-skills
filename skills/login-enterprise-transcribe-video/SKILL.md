@@ -94,6 +94,26 @@ Guidelines for good steps:
 
 Save the Markdown (and keep the `frames/` folder alongside it so images resolve). If a `present_files` tool is available, present the `.md` file. Offer to also export to Word/PDF or to re-run with different sampling if the user wants finer or coarser granularity.
 
+## Mixed recordings
+
+When a recording shows multiple applications or workflows (e.g., a desktop app
+followed by a web browser session):
+
+1. **Identify workflow boundaries** — look for application switches, desktop returns,
+   or browser open/close events in the frame sequence.
+2. **Split into candidate workflows** — each application or distinct task becomes its
+   own candidate. Do not try to generate a single script for a mixed recording.
+3. **Ask follow-up questions** before generating scripts:
+   - "The recording shows two workflows: [desktop app] and [web navigation].
+     Which would you like to create a script for first?"
+   - "What timer names should be used for each workflow?"
+4. **Output candidate workflows** as a structured list with:
+   - Workflow name
+   - Application type (desktop / web)
+   - Frame range (timestamps)
+   - Observed actions
+   - What additional information is needed to generate a script
+
 ## Tips on sampling
 
 - **Too few steps / missed actions?** Lower `--scene-threshold` (to ~0.15) and/or `--interval` (to ~2), and raise `--max-frames`.
