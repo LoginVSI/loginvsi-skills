@@ -13,7 +13,7 @@ namespace ExampleScripts
         {
             await StartBrowser();
 
-            Wait(5000);
+            Wait(5); // Wait takes seconds, not milliseconds
             
             await Locator("//input[@id='search' and @aria-label='Search']").ClickAsync();
 
