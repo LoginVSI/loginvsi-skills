@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "2.0",
+  "app": {
+    "name": "notepad",
+    "kind": "desktop",
+    "exePath": "C:\\Windows\\System32\\notepad.exe",
+    "mainWindowTitle": "*Notepad*"
+  },
+  "capturedAt": "2026-07-12T00:00:00Z",
+  "workflows": ["open-file", "edit-text"],
+  "controls": [
+    {
+      "id": "file-menu",
+      "label": "File menu",
+      "controlType": "MenuItem",
+      "className": "",
+      "name": "File",
+      "xpath": "/Menu/MenuItem",
+      "finders": {
+        "FindAutomationElementByXPathOrInformation": {
+          "status": "OK",
+          "params": { "xpath": "/Menu/MenuItem", "name": "File", "controlType": "MenuItem", "className": "", "automationId": "" }
+        },
+        "FindControlWithXPath": {
+          "status": "OK",
+          "params": { "xPath": "MenuBar:MenuBar/MenuItem" }
+        },
+        "FindControl": {
+          "status": "OK",
+          "params": { "title": "File" }
+        }
+      },
+      "preferredFinder": "FindAutomationElementByXPathOrInformation",
+      "discoveredBy": ["open-file"]
+    },
+    {
+      "id": "text-editor",
+      "label": "Text editor",
+      "controlType": "Document",
+      "className": "RichEditD2DPT",
+      "name": "Text editor",
+      "xpath": "/Pane/Document",
+      "finders": {
+        "FindAutomationElementByXPathOrInformation": {
+          "status": "OK",
+          "params": { "xpath": "/Pane/Document", "name": "Text editor", "controlType": "Document", "className": "RichEditD2DPT", "automationId": "" }
+        },
+        "FindControlWithXPath": {
+          "status": "OK",
+          "params": { "xPath": "Pane:NotepadTextBox/Document:RichEditD2DPT" }
+        }
+      },
+      "preferredFinder": "FindAutomationElementByXPathOrInformation",
+      "discoveredBy": ["open-file", "edit-text"]
+    },
+    {
+      "id": "close-button",
+      "label": "Close button",
+      "controlType": "Button",
+      "className": "",
+      "name": "Close",
+      "xpath": "/TitleBar/Button",
+      "finders": {
+        "FindControl": {
+          "status": "OK",
+          "params": { "title": "Close" }
+        }
+      },
+      "preferredFinder": "FindControl",
+      "discoveredBy": ["edit-text"]
+    }
+  ],
+  "coverage": {
+    "method": "DumpHierarchy",
+    "confidence": "high",
+    "notes": "Java apps, RDP windows, and custom-draw regions may not be visible to UIAutomation."
+  }
+}
