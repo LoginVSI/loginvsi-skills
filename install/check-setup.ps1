@@ -107,6 +107,19 @@ $engineDir  = if ($EngineDir)   { $EngineDir }
               elseif ($onWindows) { Find-EngineDir }
               else { $null }
 
+# Engine version -- extract from the exe's FileVersionInfo if available
+$engineVersion = $null
+if ($engineDir) {
+    $engineExe = Join-Path $engineDir 'LoginEnterprise.Engine.Standalone.exe'
+    if (Test-Path $engineExe) {
+        try {
+            $vi = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($engineExe)
+            if ($vi.ProductVersion) { $engineVersion = $vi.ProductVersion }
+            elseif ($vi.FileVersion) { $engineVersion = $vi.FileVersion }
+        } catch { }
+    }
+}
+
 $dotnetVersion = $null
 $dotnetCmd = Get-Command dotnet -ErrorAction SilentlyContinue
 if ($dotnetCmd) {
@@ -209,6 +222,7 @@ $jsonSummary = [ordered]@{
     platform    = if ($onWindows) { 'Windows' } else { [System.Runtime.InteropServices.RuntimeInformation]::OSDescription }
     editorRoot  = $editorRoot
     engineDir   = $engineDir
+    engineVersion = $engineVersion
     dotnetSdk   = $dotnetVersion
     validatorDll = $validatorDll
     python      = if ($python) { $python.version } else { $null }
@@ -243,7 +257,9 @@ Write-Host ""
 $pad = 18
 $dPlatform    = if ($onWindows) { 'Windows' } else { [System.Runtime.InteropServices.RuntimeInformation]::OSDescription }
 $dEditor      = if ($editorRoot) { $editorRoot } else { '(not found)' }
-$dEngine      = if ($engineDir) { $engineDir } else { '(not found)' }
+$dEngine      = if ($engineDir -and $engineVersion) { "$engineDir ($engineVersion)" }
+                elseif ($engineDir) { $engineDir }
+                else { '(not found)' }
 $dDotnet      = if ($dotnetVersion) { $dotnetVersion } else { '(not found)' }
 $dValidator   = if ($validatorDll) { 'built' } else { '(not built -- run install.ps1 in the script-validator skill)' }
 $dPython      = if ($python) { $python.version } else { '(not found)' }
