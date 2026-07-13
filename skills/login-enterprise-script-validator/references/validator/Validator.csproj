@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- net8.0 matches the ScriptEditor host runtime. -->
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>le-validate</AssemblyName>
+    <RootNamespace>LoginEnterprise.Validator</RootNamespace>
+  </PropertyGroup>
+
+  <!-- Reference the Roslyn that ships INSIDE the deployed ScriptEditor (no NuGet required, so
+       this builds offline and always matches the editor's exact Roslyn version that hosts
+       ScriptAnalyzer). Pass the deployment root at build time:
+
+         dotnet build -c Release -p:EditorRoot="C:\Program Files\Login VSI\ScriptEditor"
+
+       EditorRoot is the folder that contains bin\, ReferenceAssemblies\ and ScriptEditor.Config. -->
+  <Target Name="RequireEditorRoot" BeforeTargets="ResolveAssemblyReferences;CoreCompile"
+          Condition="'$(EditorRoot)' == '' Or !Exists('$(EditorRoot)\bin\Microsoft.CodeAnalysis.dll')">
+    <Error Text="Set -p:EditorRoot to your deployed ScriptEditor folder (must contain bin\Microsoft.CodeAnalysis.dll). Example: dotnet build -c Release -p:EditorRoot=&quot;C:\Program Files\Login VSI\ScriptEditor&quot;" />
+  </Target>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.CodeAnalysis">
+      <HintPath>$(EditorRoot)\bin\Microsoft.CodeAnalysis.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.CSharp">
+      <HintPath>$(EditorRoot)\bin\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>
