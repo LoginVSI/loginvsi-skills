@@ -20,6 +20,7 @@ Skills are symlinked to `~/.claude/skills/` for user-wide access, or `.claude/sk
 mkdir -p ~/.claude/skills
 ln -s "$(pwd)/skills/login-enterprise-script-writer" ~/.claude/skills/
 ln -s "$(pwd)/skills/login-enterprise-script-validator" ~/.claude/skills/
+ln -s "$(pwd)/skills/login-enterprise-script-runner" ~/.claude/skills/
 ```
 
 ### Windows (PowerShell as Administrator)
@@ -28,6 +29,7 @@ ln -s "$(pwd)/skills/login-enterprise-script-validator" ~/.claude/skills/
 New-Item -ItemType Directory -Path "$HOME\.claude\skills" -Force
 New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-script-writer" -Target "$PWD\skills\login-enterprise-script-writer"
 New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-script-validator" -Target "$PWD\skills\login-enterprise-script-validator"
+New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-script-runner" -Target "$PWD\skills\login-enterprise-script-runner"
 ```
 
 ## Verification
