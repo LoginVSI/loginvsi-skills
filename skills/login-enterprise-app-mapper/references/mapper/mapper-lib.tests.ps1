@@ -142,6 +142,123 @@ Describe 'ConvertFrom-ProbeLog' {
 }
 
 # ---------------------------------------------------------------------------
+# Compare-DumpHierarchy
+# ---------------------------------------------------------------------------
+Describe 'Compare-DumpHierarchy' {
+    It 'detects new controls after an action' {
+        $before = @(
+            @{ xpath = '/Menu'; controlType = 'MenuBar'; name = 'Application' }
+        )
+        $after = @(
+            @{ xpath = '/Menu'; controlType = 'MenuBar'; name = 'Application' },
+            @{ xpath = '/Menu/MenuItem'; controlType = 'MenuItem'; name = 'File' },
+            @{ xpath = '/Menu/MenuItem'; controlType = 'MenuItem'; name = 'Edit' }
+        )
+        $result = Compare-DumpHierarchy -Before $before -After $after
+        $result.uiChanged | Should -BeTrue
+        $result.newControls.Count | Should -Be 2
+        $result.removedControls.Count | Should -Be 0
+        $result.unchanged | Should -Be 1
+    }
+
+    It 'detects removed controls (e.g., dialog closed)' {
+        $before = @(
+            @{ xpath = '/Menu'; controlType = 'MenuBar'; name = '' },
+            @{ xpath = '/Dialog'; controlType = 'Window'; name = 'About' }
+        )
+        $after = @(
+            @{ xpath = '/Menu'; controlType = 'MenuBar'; name = '' }
+        )
+        $result = Compare-DumpHierarchy -Before $before -After $after
+        $result.uiChanged | Should -BeTrue
+        $result.newControls.Count | Should -Be 0
+        $result.removedControls.Count | Should -Be 1
+        $result.removedControls[0].name | Should -Be 'About'
+    }
+
+    It 'reports no change when UI is identical' {
+        $controls = @(
+            @{ xpath = '/Button'; controlType = 'Button'; name = 'OK' }
+        )
+        $result = Compare-DumpHierarchy -Before $controls -After $controls
+        $result.uiChanged | Should -BeFalse
+        $result.newControls.Count | Should -Be 0
+        $result.removedControls.Count | Should -Be 0
+        $result.unchanged | Should -Be 1
+    }
+
+    It 'handles empty before (first dump)' {
+        $after = @(
+            @{ xpath = '/Button'; controlType = 'Button'; name = 'OK' }
+        )
+        $result = Compare-DumpHierarchy -Before @() -After $after
+        $result.uiChanged | Should -BeTrue
+        $result.newControls.Count | Should -Be 1
+    }
+
+    It 'handles null inputs gracefully' {
+        $result = Compare-DumpHierarchy -Before $null -After $null
+        $result.uiChanged | Should -BeFalse
+        $result.newControls.Count | Should -Be 0
+        $result.removedControls.Count | Should -Be 0
+        $result.unchanged | Should -Be 0
+    }
+
+    It 'distinguishes controls by xpath+controlType+name' {
+        $before = @(
+            @{ xpath = '/Menu/MenuItem'; controlType = 'MenuItem'; name = 'File' }
+        )
+        $after = @(
+            @{ xpath = '/Menu/MenuItem'; controlType = 'MenuItem'; name = 'File' },
+            @{ xpath = '/Menu/MenuItem'; controlType = 'MenuItem'; name = 'Edit' }
+        )
+        $result = Compare-DumpHierarchy -Before $before -After $after
+        $result.newControls.Count | Should -Be 1
+        $result.newControls[0].name | Should -Be 'Edit'
+        $result.unchanged | Should -Be 1
+    }
+}
+
+# ---------------------------------------------------------------------------
+# ConvertFrom-ProbeLog — MAPPER_VERIFY parsing
+# ---------------------------------------------------------------------------
+Describe 'ConvertFrom-ProbeLog MAPPER_VERIFY' {
+    It 'parses verification line with UI changes' {
+        $lines = @(
+            'MAPPER_STEP|1|File menu|click',
+            'MAPPER_FINDER|1|FindControl|OK|title=File',
+            'MAPPER_VERIFY|1|new=3|removed=0|Menu opened with 3 new items'
+        )
+        $result = ConvertFrom-ProbeLog -LogLines $lines
+        $result.steps[0].verification | Should -Not -BeNullOrEmpty
+        $result.steps[0].verification.newControls | Should -Be 3
+        $result.steps[0].verification.removedControls | Should -Be 0
+        $result.steps[0].verification.uiChanged | Should -BeTrue
+        $result.steps[0].verification.summary | Should -Be 'Menu opened with 3 new items'
+    }
+
+    It 'parses verification with no UI change' {
+        $lines = @(
+            'MAPPER_STEP|1|About button|click',
+            'MAPPER_FINDER|1|FindControl|OK|title=About',
+            'MAPPER_VERIFY|1|new=0|removed=0|No UI change detected'
+        )
+        $result = ConvertFrom-ProbeLog -LogLines $lines
+        $result.steps[0].verification.uiChanged | Should -BeFalse
+        $result.steps[0].verification.summary | Should -Be 'No UI change detected'
+    }
+
+    It 'step without verification has no verification field' {
+        $lines = @(
+            'MAPPER_STEP|1|File menu|click',
+            'MAPPER_FINDER|1|FindControl|OK|title=File'
+        )
+        $result = ConvertFrom-ProbeLog -LogLines $lines
+        $result.steps[0].ContainsKey('verification') | Should -BeFalse
+    }
+}
+
+# ---------------------------------------------------------------------------
 # New-AppMap
 # ---------------------------------------------------------------------------
 Describe 'New-AppMap' {

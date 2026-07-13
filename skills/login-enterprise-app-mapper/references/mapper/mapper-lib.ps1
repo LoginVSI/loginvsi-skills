@@ -101,6 +101,76 @@ function ConvertFrom-DumpHierarchy {
     return $controls.ToArray()
 }
 
+function Compare-DumpHierarchy {
+    <#
+    .SYNOPSIS
+        Compare two parsed control arrays (before/after an action) and report changes.
+    .PARAMETER Before
+        Control array from ConvertFrom-DumpHierarchy before the action.
+    .PARAMETER After
+        Control array from ConvertFrom-DumpHierarchy after the action.
+    .OUTPUTS
+        Hashtable with:
+          newControls     = controls in After but not Before (by xpath+name key)
+          removedControls = controls in Before but not After
+          unchanged       = count of controls present in both
+          uiChanged       = $true if any new or removed controls detected
+    #>
+    param(
+        [object[]]$Before,
+        [object[]]$After
+    )
+
+    if (-not $Before) { $Before = @() }
+    if (-not $After)  { $After = @() }
+
+    # Build lookup keys: xpath|controlType|name — unique enough to detect meaningful changes
+    function Get-ControlKey($ctrl) {
+        $x = if ($ctrl.xpath) { $ctrl.xpath } else { '' }
+        $t = if ($ctrl.controlType) { $ctrl.controlType } else { '' }
+        $n = if ($ctrl.name) { $ctrl.name } else { '' }
+        return "$x|$t|$n"
+    }
+
+    $beforeKeys = @{}
+    foreach ($c in $Before) {
+        $key = Get-ControlKey $c
+        $beforeKeys[$key] = $c
+    }
+
+    $afterKeys = @{}
+    foreach ($c in $After) {
+        $key = Get-ControlKey $c
+        $afterKeys[$key] = $c
+    }
+
+    $newControls = @()
+    foreach ($key in $afterKeys.Keys) {
+        if (-not $beforeKeys.ContainsKey($key)) {
+            $newControls += $afterKeys[$key]
+        }
+    }
+
+    $removedControls = @()
+    foreach ($key in $beforeKeys.Keys) {
+        if (-not $afterKeys.ContainsKey($key)) {
+            $removedControls += $beforeKeys[$key]
+        }
+    }
+
+    $unchangedCount = 0
+    foreach ($key in $afterKeys.Keys) {
+        if ($beforeKeys.ContainsKey($key)) { $unchangedCount++ }
+    }
+
+    return @{
+        newControls     = $newControls
+        removedControls = $removedControls
+        unchanged       = $unchangedCount
+        uiChanged       = ($newControls.Count -gt 0 -or $removedControls.Count -gt 0)
+    }
+}
+
 function ConvertFrom-ProbeLog {
     <#
     .SYNOPSIS
@@ -109,7 +179,7 @@ function ConvertFrom-ProbeLog {
         Array of log lines from the engine stdout.
     .OUTPUTS
         Hashtable with:
-          steps   = @( @{ index; label; action; success } )
+          steps    = @( @{ index; label; action; success; verification } )
           controls = @( @{ id; label; controlType; className; name; xpath; finders; preferredFinder } )
     #>
     param([string[]]$LogLines)
@@ -150,6 +220,18 @@ function ConvertFrom-ProbeLog {
             $findersByStep[$idx][$method] = @{
                 status = $status
                 params = $params
+            }
+        }
+        elseif ($line -match '^MAPPER_VERIFY\|(\d+)\|new=(\d+)\|removed=(\d+)\|(.*)$') {
+            $idx = [int]$Matches[1]
+            $existing = $steps | Where-Object { $_.index -eq $idx }
+            if ($existing) {
+                $existing.verification = @{
+                    newControls     = [int]$Matches[2]
+                    removedControls = [int]$Matches[3]
+                    summary         = $Matches[4]
+                    uiChanged       = ([int]$Matches[2] -gt 0 -or [int]$Matches[3] -gt 0)
+                }
             }
         }
         elseif ($line -match '^MAPPER_STEP_FAIL\|(\d+)\|(.+)$') {

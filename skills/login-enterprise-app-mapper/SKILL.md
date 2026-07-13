@@ -129,13 +129,21 @@ else if (f3 != null) f3.<Action>();
 else Log("MAPPER_STEP_FAIL|N|No finder succeeded");
 
 Wait(1);
+
+// Post-action verification: dump again and compare
+DumpHierarchy("C:\\temp\\mapper\\stepN_after.txt");
+// The agent compares before/after dumps using Compare-DumpHierarchy
+// and logs the result:
+Log("MAPPER_VERIFY|N|new=<count>|removed=<count>|<summary>");
 ```
 
 Key points:
 - `continueOnError: true` on every finder — failure never aborts the probe.
 - `DumpHierarchy` before each step captures the live UI the finders work against.
-- Structured log prefixes (`MAPPER_STEP`, `MAPPER_FINDER`, `MAPPER_STEP_FAIL`)
-  enable reliable post-run parsing.
+- `DumpHierarchy` **after** each action captures what changed — the agent compares
+  before/after to verify the action produced the expected UI state.
+- Structured log prefixes (`MAPPER_STEP`, `MAPPER_FINDER`, `MAPPER_VERIFY`,
+  `MAPPER_STEP_FAIL`) enable reliable post-run parsing.
 
 ### 5. Run the probe
 
@@ -152,13 +160,35 @@ After the run, extract lines matching the three prefixes:
 |--------|------------------------|
 | `MAPPER_STEP` | step number, label, action |
 | `MAPPER_FINDER` | step number, method, OK/FAIL, params |
+| `MAPPER_VERIFY` | step number, `new=N`, `removed=N`, summary |
 | `MAPPER_STEP_FAIL` | step number, reason |
 
-For each step, collect all `MAPPER_FINDER` lines to build the `finders` object.
-Set `preferredFinder` to `FindAutomationElementByXPathOrInformation` when it
-returned `OK`; otherwise the first method that returned `OK`.
+For each step:
+- Collect `MAPPER_FINDER` lines to build the `finders` object. Set
+  `preferredFinder` to `FindAutomationElementByXPathOrInformation` when it
+  returned `OK`; otherwise the first method that returned `OK`.
+- Read `MAPPER_VERIFY` to check post-action results. If `new=0` and
+  `removed=0`, the action did not produce a detectable UI change — report
+  this to the user rather than retrying blindly. The action itself may have
+  failed (e.g., a menu didn't open, a dialog didn't appear).
 
-### 7. Merge into app-map.json
+### 7. Verify actions produced expected UI changes
+
+After parsing the probe log, check each step's `MAPPER_VERIFY` result:
+
+- **`new > 0`**: The action opened new UI (a menu, dialog, or panel). The new
+  controls from the post-action dump should be added to the app-map.
+- **`new = 0, removed = 0`**: The action did not produce a detectable UI change.
+  **Do not retry blindly.** Report to the user: "Clicking [control] did not produce
+  new UI elements. The action may have failed, or the resulting UI may not be visible
+  to UIAutomation (e.g., custom-drawn controls, Java apps, RDP windows)."
+- **`removed > 0`**: Controls disappeared (e.g., a dialog was closed). This is
+  expected after close/dismiss actions.
+
+Use the `Compare-DumpHierarchy` function in `mapper-lib.ps1` to compute the
+before/after diff when generating the `MAPPER_VERIFY` log line in the probe.
+
+### 8. Merge into app-map.json
 
 1. Load existing map if present.
 2. For each control found in this probe run:
