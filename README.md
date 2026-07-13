@@ -24,7 +24,7 @@ Any agent implementing the [agentskills.io specification](https://agentskills.io
 | Skill | Purpose | Status |
 |-------|---------|--------|
 | `login-enterprise-script-writer` | Generate a `.cs` automation script from natural-language instructions | Available |
-| `login-enterprise-script-validator` | Validate scripts against Login Enterprise's 8 Roslyn analyzer rules | Coming Soon |
+| `login-enterprise-script-validator` | Validate scripts against Login Enterprise's 8 Roslyn analyzer rules | Available |
 | `login-enterprise-script-runner` | Execute a script on the standalone engine and report results | Coming Soon |
 | `login-enterprise-app-mapper` | Map a desktop app's UI tree or web page DOM into `app-map.json` | Coming Soon |
 | `login-enterprise-create-test` | Orchestrate the full test lifecycle: check environment, map app, write script, validate, run | Coming Soon |
@@ -75,11 +75,13 @@ Run without arguments for interactive selection.
 ```bash
 # User-wide (all projects)
 ln -s "$(pwd)/skills/login-enterprise-script-writer" ~/.claude/skills/
+ln -s "$(pwd)/skills/login-enterprise-script-validator" ~/.claude/skills/
 ```
 
 ```powershell
 # Windows (run as Administrator for symlinks)
 New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-script-writer" -Target "$PWD\skills\login-enterprise-script-writer"
+New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-script-validator" -Target "$PWD\skills\login-enterprise-script-validator"
 ```
 
 </details>
@@ -91,6 +93,7 @@ New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-scr
 # Project-level
 mkdir -p .agent-skills
 ln -s "$(pwd)/skills/login-enterprise-script-writer" .agent-skills/
+ln -s "$(pwd)/skills/login-enterprise-script-validator" .agent-skills/
 ```
 
 </details>
@@ -107,13 +110,13 @@ The agent should list the installed skills and their capabilities.
 
 `login-enterprise-script-writer` has no prerequisites — it works on any platform with no additional tools required.
 
-Future skills that execute scripts or interact with Login Enterprise will require:
+`login-enterprise-script-validator` requires a Windows environment with the Login Enterprise toolchain installed:
 
 | Requirement | Skills that need it |
 |-------------|-------------------|
 | Windows | script-validator, script-runner, app-mapper (desktop) |
-| Login Enterprise ScriptEditor installed | script-validator, script-runner |
 | .NET 8 SDK | script-validator, script-runner |
+| Login Enterprise ScriptEditor at `C:\Program Files\Login VSI\ScriptEditor\` | script-validator, script-runner |
 | Login Enterprise Engine (standalone) | script-runner, app-mapper (desktop) |
 | Python 3 | app-mapper (web), transcribe-video |
 | Playwright (`pip install playwright`) | app-mapper (web) |
@@ -121,14 +124,14 @@ Future skills that execute scripts or interact with Login Enterprise will requir
 
 ## How Skills Work Together
 
-> Only `script-writer` is available now. The full pipeline will be unlocked as additional skills are released.
+> `script-writer` and `script-validator` are now available. The full pipeline will be unlocked as additional skills are released.
 
 ```
  MAP    app-mapper        --> app-map.json  (real UI identifiers from the live app)
               │
  WRITE  script-writer     --> Script.cs     (uses app-map if available)  ← available now
               │
- VALIDATE script-validator --> compiles? timers ok?
+ VALIDATE script-validator --> compiles? timers ok?  ← available now
               │
  RUN    script-runner     --> did it actually drive the app?
 ```
@@ -145,6 +148,12 @@ The `create-test` skill will orchestrate this entire flow. Each skill also works
 
 **Generate a web automation script:**
 > "Write a Login Enterprise Playwright script that logs into our HR portal and navigates to the leave request form"
+
+**Validate a script:**
+> "Validate my Login Enterprise script at C:\Scripts\OutlookTest.cs against all Roslyn analyzer rules"
+
+**Write and validate in one flow:**
+> "Write a Login Enterprise script for Notepad that types text and saves the file, then validate it"
 
 ## Updating
 

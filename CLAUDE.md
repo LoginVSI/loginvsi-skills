@@ -4,13 +4,13 @@
 
 This is the **implementation repo** for `loginvsi/loginvsi-skills` — a public GitHub project that provides AI coding agent skills for [Login Enterprise](https://www.loginvsi.com/).
 
-Phase 1 Slice 1 is complete: the repo structure, install scripts, CI workflow, and the `script-writer` skill are all in place.
+Phase 1 is complete: the repo structure, install scripts, CI workflow, `script-writer`, and `script-validator` skills are all in place.
 
 ## Repo Contents
 
 - `skills/` — Packaged agent skills (agentskills.io format)
   - `login-enterprise-script-writer/` — Available now
-  - `login-enterprise-script-validator/` — In development (Slice 2)
+  - `login-enterprise-script-validator/` — Available now
 - `install/` — Install scripts for Claude Code and OpenAI Codex (`install.sh`, `install.ps1`)
 - `docs/PRD.md` — Full product requirements: goals, skill list, repo structure, agent compatibility matrix, success criteria, timeline
 - `docs/architecture.md` — How skills relate to each other
@@ -25,7 +25,7 @@ Six AI agent skills packaged per the [agentskills.io specification](https://agen
 | Skill | Purpose | Status |
 |-------|---------|--------|
 | `login-enterprise-script-writer` | Generate `.cs` automation scripts | Available |
-| `login-enterprise-script-validator` | Validate scripts against 8 Roslyn analyzer rules | Slice 2 |
+| `login-enterprise-script-validator` | Validate scripts against 8 Roslyn analyzer rules | Available |
 | `login-enterprise-script-runner` | Execute scripts on standalone engine | Slice 3 |
 | `login-enterprise-app-mapper` | Map desktop UI trees or web DOMs to `app-map.json` | Slice 3 |
 | `login-enterprise-create-test` | Orchestrate full test lifecycle | Slice 3 |
@@ -61,12 +61,12 @@ Claude Code and OpenAI Codex are the primary supported agents. GitHub Copilot, C
 
 ## Current Status
 
-**Phase 1 Slice 1 complete.** The following are in place:
+**Phase 1 complete.** The following are in place:
 - Repo structure and CI workflow
 - Install scripts (`install.sh` / `install.ps1`) supporting `--claude`, `--codex`, `--all` (bash) and `-Agent Claude/Codex/All` (PowerShell)
 - `login-enterprise-script-writer` skill
+- `login-enterprise-script-validator` skill (requires Windows, .NET 8 SDK, ScriptEditor at `C:\Program Files\Login VSI\ScriptEditor\`)
 
 Remaining build phases:
-2. `script-validator` (Slice 2)
-3. `script-runner` + `app-mapper` + `create-test` (Slice 3)
-4. `transcribe-video` + docs site (Slice 4)
+3. `script-runner` + `app-mapper` + `create-test`
+4. `transcribe-video` + docs site
