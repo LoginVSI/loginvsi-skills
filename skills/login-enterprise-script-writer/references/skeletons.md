@@ -78,7 +78,9 @@ public class MyWebScript : WebScriptBase
 
         // await Locator("selector").ClickAsync(); etc.
 
-        await StopBrowser();
+        // Robust cleanup: StopBrowser() can throw if the browser process exited early
+        // (sandbox, self-closing page). Timers already recorded remain valid.
+        try { await StopBrowser(); } catch { /* browser already closed */ }
     }
 }
 ```

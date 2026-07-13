@@ -97,6 +97,24 @@ A script that validates clean still compiles with selectors that point at nothin
    Fix any violation silently and re-check.
 9. **Emit ONLY the final `.cs` script.**
 
+## Browser cleanup
+
+**Browser cleanup:** `StopBrowser()` may throw if the browser process exited before cleanup
+(e.g., due to sandbox restrictions or the page closing itself). This does not invalidate
+timer measurements taken before the cleanup call. Wrap `StopBrowser()` in a try/catch
+if cleanup failures should not fail the overall test:
+
+```csharp
+try { StopBrowser(); } catch { /* browser already closed */ }
+```
+
+## Timer name normalization
+
+**Timer name normalization:** The Login Enterprise engine normalizes timer names to
+lowercase in CSV output. `Load_Example` in your script becomes `load_example` in the
+results CSV. This is expected engine behavior. Use lowercase + underscores in timer
+names to avoid confusion: `load_example`, not `Load_Example`.
+
 ## References
 - `references/allowlist.md` — what you may use (and the negative list of what you may not).
 - `references/skeletons.md` — exact templates per mode.

@@ -78,6 +78,12 @@ The engine needs a metadata header comment, or it throws:
 3. **Only report success after `success:true`** (`result:"Ended"`; `run.ps1` itself exits 0 when
    it judges the run successful).
 
+**Partial success:** A script can produce valid timer measurements but still report
+`EndedWithErrors` if cleanup fails (e.g., `StopBrowser()` throws). Timer evidence in
+the CSV is still valid. Check the `timers` array in the JSON output — if your target
+timers are present with values, the measured interaction succeeded even if the final
+verdict is `EndedWithErrors`.
+
 ## Confirm the runner is actually wired up
 
 Once per machine, run the bundled smoke test — it proves validate→run works end to end and that
