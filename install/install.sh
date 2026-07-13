@@ -83,7 +83,7 @@ if [ "$INSTALL_CLAUDE" = true ]; then
         else
             ln -s "$SKILLS_DIR/$skill" "$target"
             echo -e "  ${GREEN}✓ $skill${NC}"
-            ((installed++))
+            installed=$((installed + 1))
         fi
     done
 fi
@@ -101,7 +101,7 @@ if [ "$INSTALL_CODEX" = true ]; then
         else
             ln -s "$SKILLS_DIR/$skill" "$target"
             echo -e "  ${GREEN}✓ $skill${NC}"
-            ((installed++))
+            installed=$((installed + 1))
         fi
     done
 fi
