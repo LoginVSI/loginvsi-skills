@@ -102,10 +102,10 @@ control.GetAllChildControls();// get direct child controls
 and supports chained `.Click()/.MouseMove()` — prefer this over absolute coordinates.
 
 ## IAutomationElement (Components/IAutomationElement.cs) — script-level finders also exist on ScriptBase
-**⚠️ DEPRECATED - DO NOT USE THESE METHODS:**
-These methods use a DIFFERENT XPath format (`/ControlType/ControlType`) that doesn't work reliably.
-**ALWAYS use `MainWindow.FindControlWithXPath()`** instead, which uses the `ControlType:ClassName` format
-that matches the recorder and app-mapper output. If an app map provides a `suggestedFinder`, use it exactly.
+These methods use a different XPath format (`/ControlType/ControlType`) than `FindControlWithXPath` (`ControlType:ClassName`).
+`FindAutomationElementByXPathOrInformation` is the most resilient finder — it tries XPath first, then falls back to
+information-based matching. The app-mapper uses it as the primary finder strategy.
+When an app-map provides a `suggestedFinder`, use it exactly as written.
 ```csharp
 IAutomationElement FindAutomationElementByXPath(string xpath, int timeout=30, bool continueOnError=false);
 IAutomationElement FindAutomationElementByInformation(string automationId, string className,
