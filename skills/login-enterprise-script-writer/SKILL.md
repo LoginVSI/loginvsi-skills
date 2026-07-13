@@ -115,6 +115,28 @@ lowercase in CSV output. `Load_Example` in your script becomes `load_example` in
 results CSV. This is expected engine behavior. Use lowercase + underscores in timer
 names to avoid confusion: `load_example`, not `Load_Example`.
 
+## Web locator best practices
+
+When generating Playwright locators for text-based assertions:
+
+- **Prefer `GetByRole` or `GetByText`** over CSS selectors with `innerText` matching.
+  `GetByText` is more resilient to whitespace and formatting differences.
+- **Avoid exact full-paragraph matching.** Match a distinctive substring rather than
+  the entire text content:
+  ```csharp
+  // Fragile — fails on whitespace differences
+  await Locator("p", innerText: "This domain is for use in illustrative examples...").ClickAsync();
+
+  // Robust — matches a distinctive substring
+  await Locator("text=illustrative examples").ClickAsync();
+  ```
+- **Use `WaitForSelectorAsync` with a timeout** for elements that may load dynamically,
+  rather than a fixed `Wait()` delay.
+- **For heading assertions**, prefer the heading tag directly:
+  ```csharp
+  await Locator("h1:has-text('Example Domain')").WaitForAsync();
+  ```
+
 ## References
 - `references/allowlist.md` — what you may use (and the negative list of what you may not).
 - `references/skeletons.md` — exact templates per mode.
