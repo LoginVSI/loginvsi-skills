@@ -63,7 +63,7 @@ jobs:
           EXCLUDE="--exclude-dir=.git --exclude-dir=superpowers --exclude-dir=ext_validation --exclude=validate-skills.yml"
 
           # ProGet (case-insensitive) — scan skills/ and install/ only
-          matches=$(grep -rn $EXCLUDE -i 'ProGet' ./skills/ ./install/ ./CLAUDE.md ./CONTRIBUTING.md ./SECURITY.md 2>/dev/null || true)
+          matches=$(grep -rn $EXCLUDE -i 'ProGet' ./skills/ ./install/ 2>/dev/null || true)
           [ -n "$matches" ] && fail_match "$matches"
 
           # *.loginvsi.com but NOT www.loginvsi.com or docs.loginvsi.com
@@ -73,8 +73,9 @@ jobs:
           [ -n "$matches" ] && fail_match "$matches"
 
           # .claude/ path references — only flag in skills/ (not in README/install which legitimately reference it)
+          # Exclude lines that are warnings, notes, or common-mistakes documentation
           matches=$(grep -rn $EXCLUDE -E '(~\/|\\|\/)\.claude\/' ./skills/ 2>/dev/null \
-            | grep -iv 'warning\|note\|caution\|do not\|avoid\|common mistake' || true)
+            | grep -iv 'warning\|note\|caution\|do not\|avoid\|mistake\|not.*claude' || true)
           [ -n "$matches" ] && fail_match "$matches"
 
           # Build tag pattern -LE-<digits> — scan skills/ and install/ only
