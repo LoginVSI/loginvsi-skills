@@ -15,6 +15,18 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+# Check symlink capability — requires Developer Mode or Administrator on Windows
+try {
+    $testLink = Join-Path $env:TEMP 'le-skills-symlink-test'
+    $testTarget = $ScriptDir
+    New-Item -ItemType SymbolicLink -Path $testLink -Target $testTarget -ErrorAction Stop | Out-Null
+    Remove-Item $testLink -Force
+} catch {
+    Write-Host "Error: Cannot create symbolic links." -ForegroundColor Red
+    Write-Host "Enable Developer Mode in Windows Settings, or run as Administrator." -ForegroundColor Yellow
+    exit 1
+}
 $RepoDir = Split-Path -Parent $ScriptDir
 $SkillsDir = Join-Path $RepoDir 'skills'
 
@@ -70,6 +82,12 @@ if ($installClaude) {
     foreach ($skill in $skills) {
         $target = Join-Path $claudeSkillsDir $skill
         $source = Join-Path $SkillsDir $skill
+        $existing = Get-Item $target -Force -ErrorAction SilentlyContinue
+        if ($existing -and $existing.LinkType -eq 'SymbolicLink') {
+            # Symlink exists but may be broken — remove and recreate
+            Remove-Item $target -Force
+            Write-Host "  Replacing broken symlink: $skill" -ForegroundColor Yellow
+        }
         if (Test-Path $target) {
             Write-Host "  Skipping $skill (already exists)" -ForegroundColor Yellow
         } else {
@@ -91,6 +109,12 @@ if ($installCodex) {
     foreach ($skill in $skills) {
         $target = Join-Path $codexSkillsDir $skill
         $source = Join-Path $SkillsDir $skill
+        $existing = Get-Item $target -Force -ErrorAction SilentlyContinue
+        if ($existing -and $existing.LinkType -eq 'SymbolicLink') {
+            # Symlink exists but may be broken — remove and recreate
+            Remove-Item $target -Force
+            Write-Host "  Replacing broken symlink: $skill" -ForegroundColor Yellow
+        }
         if (Test-Path $target) {
             Write-Host "  Skipping $skill (already exists)" -ForegroundColor Yellow
         } else {
@@ -112,6 +136,12 @@ if ($installGemini) {
     foreach ($skill in $skills) {
         $target = Join-Path $geminiSkillsDir $skill
         $source = Join-Path $SkillsDir $skill
+        $existing = Get-Item $target -Force -ErrorAction SilentlyContinue
+        if ($existing -and $existing.LinkType -eq 'SymbolicLink') {
+            # Symlink exists but may be broken — remove and recreate
+            Remove-Item $target -Force
+            Write-Host "  Replacing broken symlink: $skill" -ForegroundColor Yellow
+        }
         if (Test-Path $target) {
             Write-Host "  Skipping $skill (already exists)" -ForegroundColor Yellow
         } else {

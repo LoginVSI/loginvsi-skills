@@ -83,6 +83,11 @@ if [ "$INSTALL_CLAUDE" = true ]; then
     echo "Installing for Claude Code → $CLAUDE_SKILLS_DIR"
     for skill in "${SKILLS[@]}"; do
         target="$CLAUDE_SKILLS_DIR/$skill"
+        # Remove broken symlinks
+        if [ -L "$target" ] && [ ! -e "$target" ]; then
+            echo -e "  ${YELLOW}Removing broken symlink: $skill${NC}"
+            rm "$target"
+        fi
         if [ -L "$target" ] || [ -d "$target" ]; then
             echo -e "  ${YELLOW}Skipping $skill (already exists)${NC}"
         else
@@ -101,6 +106,11 @@ if [ "$INSTALL_CODEX" = true ]; then
     echo "Installing for OpenAI Codex → $CODEX_SKILLS_DIR"
     for skill in "${SKILLS[@]}"; do
         target="$CODEX_SKILLS_DIR/$skill"
+        # Remove broken symlinks
+        if [ -L "$target" ] && [ ! -e "$target" ]; then
+            echo -e "  ${YELLOW}Removing broken symlink: $skill${NC}"
+            rm "$target"
+        fi
         if [ -L "$target" ] || [ -d "$target" ]; then
             echo -e "  ${YELLOW}Skipping $skill (already exists)${NC}"
         else
@@ -119,6 +129,11 @@ if [ "$INSTALL_GEMINI" = true ]; then
     echo "Installing for Gemini CLI → $GEMINI_SKILLS_DIR"
     for skill in "${SKILLS[@]}"; do
         target="$GEMINI_SKILLS_DIR/$skill"
+        # Remove broken symlinks
+        if [ -L "$target" ] && [ ! -e "$target" ]; then
+            echo -e "  ${YELLOW}Removing broken symlink: $skill${NC}"
+            rm "$target"
+        fi
         if [ -L "$target" ] || [ -d "$target" ]; then
             echo -e "  ${YELLOW}Skipping $skill (already exists)${NC}"
         else
