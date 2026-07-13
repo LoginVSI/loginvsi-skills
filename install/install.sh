@@ -34,17 +34,20 @@ echo ""
 # Agent selection
 INSTALL_CLAUDE=false
 INSTALL_CODEX=false
+INSTALL_GEMINI=false
 
 if [ $# -gt 0 ]; then
     for arg in "$@"; do
         case "$arg" in
             --claude) INSTALL_CLAUDE=true ;;
             --codex)  INSTALL_CODEX=true ;;
-            --all)    INSTALL_CLAUDE=true; INSTALL_CODEX=true ;;
+            --gemini) INSTALL_GEMINI=true ;;
+            --all)    INSTALL_CLAUDE=true; INSTALL_CODEX=true; INSTALL_GEMINI=true ;;
             --help)
-                echo "Usage: install.sh [--claude] [--codex] [--all]"
+                echo "Usage: install.sh [--claude] [--codex] [--gemini] [--all]"
                 echo "  --claude  Install for Claude Code"
                 echo "  --codex   Install for OpenAI Codex"
+                echo "  --gemini  Install for Gemini CLI"
                 echo "  --all     Install for all supported agents"
                 echo "  (no args) Interactive selection"
                 exit 0
@@ -57,13 +60,15 @@ else
     echo ""
     echo "  1) Claude Code (~/.claude/skills/)"
     echo "  2) OpenAI Codex (.agent-skills/ in current project)"
-    echo "  3) All"
+    echo "  3) Gemini CLI (~/.gemini/skills/)"
+    echo "  4) All"
     echo ""
-    read -rp "Choice [1/2/3]: " choice
+    read -rp "Choice [1/2/3/4]: " choice
     case "$choice" in
         1) INSTALL_CLAUDE=true ;;
         2) INSTALL_CODEX=true ;;
-        3) INSTALL_CLAUDE=true; INSTALL_CODEX=true ;;
+        3) INSTALL_GEMINI=true ;;
+        4) INSTALL_CLAUDE=true; INSTALL_CODEX=true; INSTALL_GEMINI=true ;;
         *) echo -e "${RED}Invalid choice${NC}"; exit 1 ;;
     esac
 fi
@@ -96,6 +101,24 @@ if [ "$INSTALL_CODEX" = true ]; then
     echo "Installing for OpenAI Codex → $CODEX_SKILLS_DIR"
     for skill in "${SKILLS[@]}"; do
         target="$CODEX_SKILLS_DIR/$skill"
+        if [ -L "$target" ] || [ -d "$target" ]; then
+            echo -e "  ${YELLOW}Skipping $skill (already exists)${NC}"
+        else
+            ln -s "$SKILLS_DIR/$skill" "$target"
+            echo -e "  ${GREEN}✓ $skill${NC}"
+            installed=$((installed + 1))
+        fi
+    done
+fi
+
+# Gemini CLI
+if [ "$INSTALL_GEMINI" = true ]; then
+    GEMINI_SKILLS_DIR="$HOME/.gemini/skills"
+    mkdir -p "$GEMINI_SKILLS_DIR"
+    echo ""
+    echo "Installing for Gemini CLI → $GEMINI_SKILLS_DIR"
+    for skill in "${SKILLS[@]}"; do
+        target="$GEMINI_SKILLS_DIR/$skill"
         if [ -L "$target" ] || [ -d "$target" ]; then
             echo -e "  ${YELLOW}Skipping $skill (already exists)${NC}"
         else

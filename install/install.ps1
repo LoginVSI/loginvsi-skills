@@ -9,7 +9,7 @@
     .\install.ps1 -Agent All
 #>
 param(
-    [ValidateSet('Claude', 'Codex', 'All')]
+    [ValidateSet('Claude', 'Codex', 'Gemini', 'All')]
     [string]$Agent
 )
 
@@ -41,19 +41,22 @@ if (-not $Agent) {
     Write-Host ""
     Write-Host "  1) Claude Code (~/.claude/skills/)"
     Write-Host "  2) OpenAI Codex (.agent-skills/ in current project)"
-    Write-Host "  3) All"
+    Write-Host "  3) Gemini CLI (~/.gemini/skills/)"
+    Write-Host "  4) All"
     Write-Host ""
-    $choice = Read-Host "Choice [1/2/3]"
+    $choice = Read-Host "Choice [1/2/3/4]"
     switch ($choice) {
         '1' { $Agent = 'Claude' }
         '2' { $Agent = 'Codex' }
-        '3' { $Agent = 'All' }
+        '3' { $Agent = 'Gemini' }
+        '4' { $Agent = 'All' }
         default { Write-Host "Invalid choice" -ForegroundColor Red; exit 1 }
     }
 }
 
 $installClaude = $Agent -in @('Claude', 'All')
 $installCodex  = $Agent -in @('Codex', 'All')
+$installGemini = $Agent -in @('Gemini', 'All')
 $installed = 0
 
 # Claude Code
@@ -87,6 +90,27 @@ if ($installCodex) {
     Write-Host "Installing for OpenAI Codex -> $codexSkillsDir"
     foreach ($skill in $skills) {
         $target = Join-Path $codexSkillsDir $skill
+        $source = Join-Path $SkillsDir $skill
+        if (Test-Path $target) {
+            Write-Host "  Skipping $skill (already exists)" -ForegroundColor Yellow
+        } else {
+            New-Item -ItemType SymbolicLink -Path $target -Target $source | Out-Null
+            Write-Host "  + $skill" -ForegroundColor Green
+            $installed++
+        }
+    }
+}
+
+# Gemini CLI
+if ($installGemini) {
+    $geminiSkillsDir = Join-Path (Join-Path $HOME '.gemini') 'skills'
+    if (-not (Test-Path $geminiSkillsDir)) {
+        New-Item -ItemType Directory -Path $geminiSkillsDir -Force | Out-Null
+    }
+    Write-Host ""
+    Write-Host "Installing for Gemini CLI -> $geminiSkillsDir"
+    foreach ($skill in $skills) {
+        $target = Join-Path $geminiSkillsDir $skill
         $source = Join-Path $SkillsDir $skill
         if (Test-Path $target) {
             Write-Host "  Skipping $skill (already exists)" -ForegroundColor Yellow
