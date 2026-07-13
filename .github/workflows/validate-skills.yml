@@ -2,11 +2,7 @@ name: Validate Skills
 
 on:
   push:
-    paths:
-      - 'skills/**'
   pull_request:
-    paths:
-      - 'skills/**'
 
 jobs:
   validate:
@@ -18,6 +14,93 @@ jobs:
         with:
           node-version: '20'
 
+      # ── A1: Secret scanning ────────────────────────────────────────────────
+      - name: Scan for secrets
+        run: |
+          exit_code=0
+
+          # Helper: print match and set failure flag
+          fail_match() {
+            echo "✗ Secret pattern found:"
+            echo "$1"
+            exit_code=1
+          }
+
+          # API key prefixes
+          for pattern in 'sk-[A-Za-z0-9]{20,}' 'ghp_[A-Za-z0-9]{36}' 'gho_[A-Za-z0-9]{36}' 'AKIA[0-9A-Z]{16}'; do
+            matches=$(grep -rn --exclude-dir=.git -E "$pattern" . 2>/dev/null || true)
+            [ -n "$matches" ] && fail_match "$matches"
+          done
+
+          # Generic assignment patterns (password/token/secret = '...' or "...")
+          for pattern in "password\s*=\s*['\"][^'\"]{1,}" "token\s*=\s*['\"][^'\"]{1,}" "secret\s*=\s*['\"][^'\"]{1,}"; do
+            matches=$(grep -rn --exclude-dir=.git -iP "$pattern" . 2>/dev/null || true)
+            [ -n "$matches" ] && fail_match "$matches"
+          done
+
+          # Base64-ish keys: an '=' sign followed immediately by 40+ alphanumeric chars
+          matches=$(grep -rn --exclude-dir=.git -E '=[A-Za-z0-9/+]{40,}' . 2>/dev/null || true)
+          [ -n "$matches" ] && fail_match "$matches"
+
+          exit $exit_code
+
+      # ── A2: Internal reference scanning ───────────────────────────────────
+      - name: Scan for internal references
+        run: |
+          exit_code=0
+
+          fail_match() {
+            echo "✗ Internal reference found:"
+            echo "$1"
+            exit_code=1
+          }
+
+          # ProGet (case-insensitive)
+          matches=$(grep -rn --exclude-dir=.git -i 'ProGet' . 2>/dev/null || true)
+          [ -n "$matches" ] && fail_match "$matches"
+
+          # *.loginvsi.com but NOT docs.loginvsi.com
+          matches=$(grep -rn --exclude-dir=.git -E '\.loginvsi\.com' . 2>/dev/null \
+            | grep -v 'docs\.loginvsi\.com' || true)
+          [ -n "$matches" ] && fail_match "$matches"
+
+          # .claude/ path references (not in warning/documentation contexts)
+          matches=$(grep -rn --exclude-dir=.git -E '(~\/|\\|\/)\.claude\/' . 2>/dev/null \
+            | grep -iv 'warning\|note\|caution\|do not\|avoid' || true)
+          [ -n "$matches" ] && fail_match "$matches"
+
+          # Build tag pattern -LE-<digits>
+          matches=$(grep -rn --exclude-dir=.git -E '\-LE\-[0-9]+' . 2>/dev/null || true)
+          [ -n "$matches" ] && fail_match "$matches"
+
+          # TFS references (case-insensitive)
+          matches=$(grep -rn --exclude-dir=.git -iE '(^|[^a-zA-Z])(TFS|tfs\.)' . 2>/dev/null || true)
+          [ -n "$matches" ] && fail_match "$matches"
+
+          exit $exit_code
+
+      # ── A3: File reference verification ───────────────────────────────────
+      - name: Verify referenced files exist
+        run: |
+          exit_code=0
+          for skill_md in skills/*/SKILL.md; do
+            skill_dir=$(dirname "$skill_md")
+            # Extract relative markdown links: [text](references/... or scripts/... or assets/...)
+            links=$(grep -oP '\[^]]+\]\(\K(references|scripts|assets)/[^)]+' "$skill_md" 2>/dev/null || true)
+            while IFS= read -r link; do
+              [ -z "$link" ] && continue
+              target="$skill_dir/$link"
+              if [ ! -e "$target" ]; then
+                echo "✗ $skill_md references missing file: $link"
+                exit_code=1
+              else
+                echo "✓ $skill_md -> $link exists"
+              fi
+            done <<< "$links"
+          done
+          exit $exit_code
+
+      # ── Existing: Validate all skills ─────────────────────────────────────
       - name: Validate all skills
         run: |
           exit_code=0
@@ -33,12 +116,19 @@ jobs:
           done
           exit $exit_code
 
+      # ── Existing: Check SKILL.md body length (A5c fix applied) ───────────
       - name: Check SKILL.md body length
         run: |
           exit_code=0
           for skill_md in skills/*/SKILL.md; do
-            # Count lines after second --- (end of frontmatter)
-            body_lines=$(awk '/^---$/{n++; next} n>=2' "$skill_md" | wc -l)
+            # Count lines that belong to the body (after the second frontmatter ---).
+            # Only a line consisting of exactly '---' and nothing else counts as a
+            # frontmatter delimiter; we stop tracking after the second such occurrence.
+            body_lines=$(awk '
+              /^---[[:space:]]*$/ && delim_count < 2 { delim_count++; next }
+              delim_count >= 2 { body++ }
+              END { print body+0 }
+            ' "$skill_md")
             if [ "$body_lines" -gt 500 ]; then
               echo "✗ $skill_md body is $body_lines lines (max 500)"
               exit_code=1
@@ -48,6 +138,7 @@ jobs:
           done
           exit $exit_code
 
+      # ── Existing: Check directory name matches SKILL.md name ──────────────
       - name: Check directory name matches SKILL.md name
         run: |
           exit_code=0
@@ -62,3 +153,16 @@ jobs:
             fi
           done
           exit $exit_code
+
+      # ── A5b: Run Pester tests ──────────────────────────────────────────────
+      - name: Run Pester tests
+        shell: pwsh
+        run: |
+          Install-Module -Name Pester -MinimumVersion 5.0 -Force -Scope CurrentUser
+          $testFiles = Get-ChildItem -Path skills/ -Recurse -Filter '*.tests.ps1'
+          if ($testFiles.Count -eq 0) {
+            Write-Host "No Pester test files found under skills/ — skipping."
+            exit 0
+          }
+          $results = Invoke-Pester -Path skills/ -Recurse -PassThru
+          if ($results.FailedCount -gt 0) { exit 1 }
