@@ -152,6 +152,8 @@ The agent should list the installed skills and their capabilities.
 
 This detects ScriptEditor, the standalone engine, .NET 8 SDK, Python 3, Playwright, and ffmpeg, then reports which skills are ready to use. Pass `-Json` for machine-readable output.
 
+> **New to Windows setup?** See the [Getting Started on Windows](docs/getting-started-windows.md) guide for a step-by-step walkthrough.
+
 ## Prerequisites
 
 `login-enterprise-script-writer` has no prerequisites — it works on any platform with no additional tools required.
