@@ -35,7 +35,11 @@ import sys
 
 
 def run(cmd):
-    return subprocess.run(cmd, capture_output=True, text=True)
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    if r.returncode != 0 and r.stderr:
+        print(f"Warning: command failed (exit {r.returncode}): {' '.join(cmd)}", file=sys.stderr)
+        print(f"  stderr: {r.stderr.strip()[:500]}", file=sys.stderr)
+    return r
 
 
 def check_tools(ffmpeg_path=None, ffprobe_path=None):
@@ -182,6 +186,7 @@ def main():
         fpath = os.path.join(frames_dir, fname)
         ok, err = extract_one(args.video, t, fpath, args.width, ffmpeg_bin=ffmpeg_bin)
         if not ok:
+            print(f"Warning: failed to extract frame at {t}s: {err.strip()[:300] if err else 'no output file produced'}", file=sys.stderr)
             idx -= 1
             continue
         manifest["frames"].append({
