@@ -35,6 +35,7 @@ echo ""
 INSTALL_CLAUDE=false
 INSTALL_CODEX=false
 INSTALL_GEMINI=false
+INSTALL_CURSOR=false
 
 if [ $# -gt 0 ]; then
     for arg in "$@"; do
@@ -42,12 +43,14 @@ if [ $# -gt 0 ]; then
             --claude) INSTALL_CLAUDE=true ;;
             --codex)  INSTALL_CODEX=true ;;
             --gemini) INSTALL_GEMINI=true ;;
-            --all)    INSTALL_CLAUDE=true; INSTALL_CODEX=true; INSTALL_GEMINI=true ;;
+            --cursor) INSTALL_CURSOR=true ;;
+            --all)    INSTALL_CLAUDE=true; INSTALL_CODEX=true; INSTALL_GEMINI=true; INSTALL_CURSOR=true ;;
             --help)
-                echo "Usage: install.sh [--claude] [--codex] [--gemini] [--all]"
+                echo "Usage: install.sh [--claude] [--codex] [--gemini] [--cursor] [--all]"
                 echo "  --claude  Install for Claude Code"
                 echo "  --codex   Install for OpenAI Codex"
                 echo "  --gemini  Install for Gemini CLI"
+                echo "  --cursor  Install for Cursor"
                 echo "  --all     Install for all supported agents"
                 echo "  (no args) Interactive selection"
                 exit 0
@@ -61,14 +64,16 @@ else
     echo "  1) Claude Code (~/.claude/skills/)"
     echo "  2) OpenAI Codex (.agent-skills/ in current project)"
     echo "  3) Gemini CLI (~/.gemini/skills/)"
-    echo "  4) All"
+    echo "  4) Cursor (.cursor/skills/ in current project)"
+    echo "  5) All"
     echo ""
-    read -rp "Choice [1/2/3/4]: " choice
+    read -rp "Choice [1/2/3/4/5]: " choice
     case "$choice" in
         1) INSTALL_CLAUDE=true ;;
         2) INSTALL_CODEX=true ;;
         3) INSTALL_GEMINI=true ;;
-        4) INSTALL_CLAUDE=true; INSTALL_CODEX=true; INSTALL_GEMINI=true ;;
+        4) INSTALL_CURSOR=true ;;
+        5) INSTALL_CLAUDE=true; INSTALL_CODEX=true; INSTALL_GEMINI=true; INSTALL_CURSOR=true ;;
         *) echo -e "${RED}Invalid choice${NC}"; exit 1 ;;
     esac
 fi
@@ -129,6 +134,29 @@ if [ "$INSTALL_GEMINI" = true ]; then
     echo "Installing for Gemini CLI → $GEMINI_SKILLS_DIR"
     for skill in "${SKILLS[@]}"; do
         target="$GEMINI_SKILLS_DIR/$skill"
+        # Remove broken symlinks
+        if [ -L "$target" ] && [ ! -e "$target" ]; then
+            echo -e "  ${YELLOW}Removing broken symlink: $skill${NC}"
+            rm "$target"
+        fi
+        if [ -L "$target" ] || [ -d "$target" ]; then
+            echo -e "  ${YELLOW}Skipping $skill (already exists)${NC}"
+        else
+            ln -s "$SKILLS_DIR/$skill" "$target"
+            echo -e "  ${GREEN}✓ $skill${NC}"
+            installed=$((installed + 1))
+        fi
+    done
+fi
+
+# Cursor
+if [ "$INSTALL_CURSOR" = true ]; then
+    CURSOR_SKILLS_DIR="$(pwd)/.cursor/skills"
+    mkdir -p "$CURSOR_SKILLS_DIR"
+    echo ""
+    echo "Installing for Cursor → $CURSOR_SKILLS_DIR"
+    for skill in "${SKILLS[@]}"; do
+        target="$CURSOR_SKILLS_DIR/$skill"
         # Remove broken symlinks
         if [ -L "$target" ] && [ ! -e "$target" ]; then
             echo -e "  ${YELLOW}Removing broken symlink: $skill${NC}"

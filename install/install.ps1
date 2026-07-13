@@ -9,7 +9,7 @@
     .\install.ps1 -Agent All
 #>
 param(
-    [ValidateSet('Claude', 'Codex', 'Gemini', 'All')]
+    [ValidateSet('Claude', 'Codex', 'Gemini', 'Cursor', 'All')]
     [string]$Agent
 )
 
@@ -54,14 +54,16 @@ if (-not $Agent) {
     Write-Host "  1) Claude Code (~/.claude/skills/)"
     Write-Host "  2) OpenAI Codex (.agent-skills/ in current project)"
     Write-Host "  3) Gemini CLI (~/.gemini/skills/)"
-    Write-Host "  4) All"
+    Write-Host "  4) Cursor (.cursor/skills/ in current project)"
+    Write-Host "  5) All"
     Write-Host ""
-    $choice = Read-Host "Choice [1/2/3/4]"
+    $choice = Read-Host "Choice [1/2/3/4/5]"
     switch ($choice) {
         '1' { $Agent = 'Claude' }
         '2' { $Agent = 'Codex' }
         '3' { $Agent = 'Gemini' }
-        '4' { $Agent = 'All' }
+        '4' { $Agent = 'Cursor' }
+        '5' { $Agent = 'All' }
         default { Write-Host "Invalid choice" -ForegroundColor Red; exit 1 }
     }
 }
@@ -69,6 +71,7 @@ if (-not $Agent) {
 $installClaude = $Agent -in @('Claude', 'All')
 $installCodex  = $Agent -in @('Codex', 'All')
 $installGemini = $Agent -in @('Gemini', 'All')
+$installCursor = $Agent -in @('Cursor', 'All')
 $installed = 0
 
 # Claude Code
@@ -139,6 +142,32 @@ if ($installGemini) {
         $existing = Get-Item $target -Force -ErrorAction SilentlyContinue
         if ($existing -and $existing.LinkType -eq 'SymbolicLink') {
             # Symlink exists but may be broken — remove and recreate
+            Remove-Item $target -Force
+            Write-Host "  Replacing broken symlink: $skill" -ForegroundColor Yellow
+        }
+        if (Test-Path $target) {
+            Write-Host "  Skipping $skill (already exists)" -ForegroundColor Yellow
+        } else {
+            New-Item -ItemType SymbolicLink -Path $target -Target $source | Out-Null
+            Write-Host "  + $skill" -ForegroundColor Green
+            $installed++
+        }
+    }
+}
+
+# Cursor
+if ($installCursor) {
+    $cursorSkillsDir = Join-Path (Join-Path (Get-Location) '.cursor') 'skills'
+    if (-not (Test-Path $cursorSkillsDir)) {
+        New-Item -ItemType Directory -Path $cursorSkillsDir -Force | Out-Null
+    }
+    Write-Host ""
+    Write-Host "Installing for Cursor -> $cursorSkillsDir"
+    foreach ($skill in $skills) {
+        $target = Join-Path $cursorSkillsDir $skill
+        $source = Join-Path $SkillsDir $skill
+        $existing = Get-Item $target -Force -ErrorAction SilentlyContinue
+        if ($existing -and $existing.LinkType -eq 'SymbolicLink') {
             Remove-Item $target -Force
             Write-Host "  Replacing broken symlink: $skill" -ForegroundColor Yellow
         }

@@ -45,7 +45,7 @@ Naming: `login-enterprise-<name>`, lowercase + hyphens only, 1-64 chars, must ma
 
 ## Supported Agents
 
-Claude Code, OpenAI Codex, and Gemini CLI are the primary supported agents. GitHub Copilot, Cursor, Windsurf, Roo Code, and Junie are planned for future slices.
+Claude Code, OpenAI Codex, Gemini CLI, and Cursor are the primary supported agents. GitHub Copilot, Windsurf, Roo Code, and Junie are planned for future slices.
 
 ## Key Constraints
 
@@ -65,7 +65,7 @@ Claude Code, OpenAI Codex, and Gemini CLI are the primary supported agents. GitH
 
 **5 skills available.** The following are in place:
 - Repo structure and CI workflow
-- Install scripts (`install.sh` / `install.ps1`) supporting `--claude`, `--codex`, `--gemini`, `--all` (bash) and `-Agent Claude/Codex/Gemini/All` (PowerShell)
+- Install scripts (`install.sh` / `install.ps1`) supporting `--claude`, `--codex`, `--gemini`, `--cursor`, `--all` (bash) and `-Agent Claude/Codex/Gemini/Cursor/All` (PowerShell)
 - `login-enterprise-script-writer` skill
 - `login-enterprise-script-validator` skill (requires Windows, .NET 8 SDK, ScriptEditor at `C:\Program Files\Login VSI\ScriptEditor\`)
 - `login-enterprise-script-runner` skill (requires Windows, Login Enterprise Engine standalone, and `le-validate.dll` built from `script-validator`'s `install.ps1`)

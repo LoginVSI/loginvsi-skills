@@ -15,8 +15,8 @@ Built on the [Agent Skills specification](https://agentskills.io/specification).
 | [Claude Code](https://claude.ai/code) | Supported |
 | [OpenAI Codex](https://developers.openai.com/codex) | Supported |
 | [Gemini CLI](https://geminicli.com) | Supported |
+| [Cursor](https://cursor.com/) | Supported |
 | [GitHub Copilot](https://github.com/features/copilot) | Planned |
-| [Cursor](https://cursor.com/) | Planned |
 | [Windsurf](https://codeium.com/windsurf) | Planned |
 | [Roo Code](https://roocode.com) | Planned |
 | [Junie (JetBrains)](https://junie.jetbrains.com/) | Planned |
@@ -56,6 +56,9 @@ cd loginvsi-skills
 # Unix/macOS — install for Gemini CLI
 ./install/install.sh --gemini
 
+# Unix/macOS — install for Cursor
+./install/install.sh --cursor
+
 # Unix/macOS — install for all supported agents
 ./install/install.sh --all
 ```
@@ -69,6 +72,9 @@ cd loginvsi-skills
 
 # Windows (PowerShell) — install for Gemini CLI
 .\install\install.ps1 -Agent Gemini
+
+# Windows (PowerShell) — install for Cursor
+.\install\install.ps1 -Agent Cursor
 
 # Windows (PowerShell) — install for all supported agents
 .\install\install.ps1 -Agent All
@@ -113,6 +119,31 @@ ln -s "$(pwd)/skills/login-enterprise-script-runner" .agent-skills/
 ln -s "$(pwd)/skills/login-enterprise-app-mapper" .agent-skills/
 ln -s "$(pwd)/skills/login-enterprise-transcribe-video" .agent-skills/
 ```
+
+</details>
+
+<details>
+<summary>Cursor</summary>
+
+```bash
+# User-wide (all projects)
+ln -s "$(pwd)/skills/login-enterprise-script-writer" ~/.cursor/skills/
+ln -s "$(pwd)/skills/login-enterprise-script-validator" ~/.cursor/skills/
+ln -s "$(pwd)/skills/login-enterprise-script-runner" ~/.cursor/skills/
+ln -s "$(pwd)/skills/login-enterprise-app-mapper" ~/.cursor/skills/
+ln -s "$(pwd)/skills/login-enterprise-transcribe-video" ~/.cursor/skills/
+```
+
+```powershell
+# Windows (run as Administrator for symlinks)
+New-Item -ItemType SymbolicLink -Path "$HOME\.cursor\skills\login-enterprise-script-writer" -Target "$PWD\skills\login-enterprise-script-writer"
+New-Item -ItemType SymbolicLink -Path "$HOME\.cursor\skills\login-enterprise-script-validator" -Target "$PWD\skills\login-enterprise-script-validator"
+New-Item -ItemType SymbolicLink -Path "$HOME\.cursor\skills\login-enterprise-script-runner" -Target "$PWD\skills\login-enterprise-script-runner"
+New-Item -ItemType SymbolicLink -Path "$HOME\.cursor\skills\login-enterprise-app-mapper" -Target "$PWD\skills\login-enterprise-app-mapper"
+New-Item -ItemType SymbolicLink -Path "$HOME\.cursor\skills\login-enterprise-transcribe-video" -Target "$PWD\skills\login-enterprise-transcribe-video"
+```
+
+See [install/agent-configs/cursor.md](install/agent-configs/cursor.md) for additional setup details.
 
 </details>
 
