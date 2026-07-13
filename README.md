@@ -158,6 +158,11 @@ This detects ScriptEditor, the standalone engine, .NET 8 SDK, Python 3, Playwrig
 
 `login-enterprise-transcribe-video` requires Python 3 and ffmpeg (both must be on your `PATH`). It works on any platform.
 
+> **Windows Python note:** If `python` opens the Microsoft Store instead of Python,
+> use the Windows Python launcher: `py -m pip install playwright` and
+> `py -m playwright install chromium`. Alternatively, disable the Microsoft Store
+> Python alias in Settings > Apps > Advanced app settings > App execution aliases.
+
 `login-enterprise-script-validator` requires a Windows environment with the Login Enterprise toolchain installed:
 
 | Requirement | Skills that need it |

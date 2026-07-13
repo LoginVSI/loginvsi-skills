@@ -12,15 +12,20 @@
 
 .PARAMETER Json   Emit only the JSON summary (for programmatic consumption).
 .PARAMETER SkillsRoot  Override the skills root directory (default: auto-detect from script location).
+.PARAMETER EditorRoot  Explicit path to the ScriptEditor root (skips auto-detection).
+.PARAMETER EngineDir   Explicit path to the engine directory containing LoginEnterprise.Engine.Standalone.exe (skips auto-detection).
 
 .EXAMPLE
   .\install\check-setup.ps1
   .\install\check-setup.ps1 -Json
+  .\install\check-setup.ps1 -EditorRoot "C:\ScriptEditor" -EngineDir "C:\ScriptEditor\engine"
 #>
 [CmdletBinding()]
 param(
     [switch]$Json,
-    [string]$SkillsRoot
+    [string]$SkillsRoot,
+    [string]$EditorRoot,
+    [string]$EngineDir
 )
 
 $ErrorActionPreference = 'Stop'
@@ -101,8 +106,13 @@ function Find-RunnerScript {
 
 $onWindows = $env:OS -eq 'Windows_NT'
 
-$editorRoot = if ($onWindows) { Find-EditorRoot } else { $null }
-$engineDir  = if ($onWindows) { Find-EngineDir }  else { $null }
+$editorRoot = if ($EditorRoot)  { $EditorRoot }
+              elseif ($onWindows) { Find-EditorRoot }
+              else { $null }
+
+$engineDir  = if ($EngineDir)   { $EngineDir }
+              elseif ($onWindows) { Find-EngineDir }
+              else { $null }
 
 $dotnetVersion = $null
 $dotnetCmd = Get-Command dotnet -ErrorAction SilentlyContinue
@@ -242,7 +252,7 @@ $dPlatform    = if ($onWindows) { 'Windows' } else { [System.Runtime.InteropServ
 $dEditor      = if ($editorRoot) { $editorRoot } else { '(not found)' }
 $dEngine      = if ($engineDir) { $engineDir } else { '(not found)' }
 $dDotnet      = if ($dotnetVersion) { $dotnetVersion } else { '(not found)' }
-$dValidator   = if ($validatorDll) { 'built' } else { '(not built)' }
+$dValidator   = if ($validatorDll) { 'built' } else { '(not built -- run install.ps1 in the script-validator skill)' }
 $dPython      = if ($python) { $python.version } else { '(not found)' }
 $dPlaywright  = if ($playwrightVersion) { "$playwrightVersion ($playwrightBrowser)" } else { '(not installed)' }
 $dFfmpeg      = if ($ffmpegVersion) { $ffmpegVersion } else { '(not found)' }
