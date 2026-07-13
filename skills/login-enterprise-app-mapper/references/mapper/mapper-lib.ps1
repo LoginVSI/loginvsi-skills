@@ -324,3 +324,218 @@ function ConvertTo-AppMapJson {
 
     return ($AppMap | ConvertTo-Json -Depth 10)
 }
+
+# ---------------------------------------------------------------------------
+# Catalog functions
+# ---------------------------------------------------------------------------
+
+function Get-CatalogDir {
+    <# Return the catalog directory path for the given scope, creating it if needed.
+       Scope 'Project' (default): <cwd>/.app-maps/
+       Scope 'Global':            ~/.login-enterprise/app-maps/ #>
+    [CmdletBinding()]
+    param(
+        [ValidateSet('Project', 'Global')]
+        [string]$Scope = 'Project'
+    )
+
+    $path = if ($Scope -eq 'Global') {
+        Join-Path (Join-Path $HOME '.login-enterprise') 'app-maps'
+    } else {
+        Join-Path (Get-Location) '.app-maps'
+    }
+
+    if (-not (Test-Path $path)) {
+        New-Item -ItemType Directory -Force -Path $path | Out-Null
+    }
+    return $path
+}
+
+function Get-CatalogIndex {
+    <# Read index.json from a catalog directory. Returns an array of entry objects.
+       Returns an empty array if the file doesn't exist. #>
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$CatalogDir)
+
+    $indexPath = Join-Path $CatalogDir 'index.json'
+    if (-not (Test-Path $indexPath)) { return @() }
+
+    $raw = Get-Content -Path $indexPath -Raw
+    if (-not $raw) { return @() }
+
+    $parsed = $raw | ConvertFrom-Json
+    if ($parsed -is [array]) { return $parsed }
+    return @($parsed)
+}
+
+function Add-MapToCatalog {
+    <# Save an app-map to the catalog directory and update index.json.
+       Filename convention: <name>-<kind>-<version>.app-map.json.
+       Never overwrites — appends a timestamp suffix if the name already exists. #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]$Map,
+        [Parameter(Mandatory)][string]$CatalogDir,
+        [string]$AppVersion = 'unknown'
+    )
+
+    if (-not (Test-Path $CatalogDir)) {
+        New-Item -ItemType Directory -Force -Path $CatalogDir | Out-Null
+    }
+
+    $name     = $Map.app.name
+    $platform = $Map.app.kind
+    $baseName = "$name-$platform-$AppVersion"
+    $fileName = "$baseName.app-map.json"
+    $filePath = Join-Path $CatalogDir $fileName
+
+    # Never overwrite — append timestamp if file exists
+    if (Test-Path $filePath) {
+        $ts = (Get-Date).ToUniversalTime().ToString('yyyyMMddHHmmss')
+        $fileName = "$baseName-$ts.app-map.json"
+        $filePath = Join-Path $CatalogDir $fileName
+    }
+
+    # Write the map file
+    $json = ConvertTo-AppMapJson -AppMap $Map
+    Set-Content -Path $filePath -Value $json -Encoding UTF8
+
+    # Update index.json
+    $index = [System.Collections.Generic.List[object]]::new()
+    $existingIndex = Get-CatalogIndex -CatalogDir $CatalogDir
+    foreach ($entry in $existingIndex) { $index.Add($entry) }
+
+    $capturedAt = if ($Map.capturedAt) { $Map.capturedAt } else { (Get-Date).ToUniversalTime().ToString('o') }
+    $confidence = if ($Map.coverage -and $Map.coverage.confidence) { $Map.coverage.confidence } else { 'unknown' }
+
+    $index.Add([pscustomobject][ordered]@{
+        name       = $name
+        platform   = $platform
+        version    = $AppVersion
+        capturedAt = $capturedAt
+        confidence = $confidence
+        path       = $fileName
+    })
+
+    $indexPath = Join-Path $CatalogDir 'index.json'
+    ($index | ConvertTo-Json -Depth 5) | Set-Content -Path $indexPath -Encoding UTF8
+
+    return $filePath
+}
+
+function Resolve-MapInCatalog {
+    <# Look up a map in the catalog by app name. Returns the full path to the best
+       match (most recent capturedAt), or $null if no match.
+
+       When no -CatalogDir is provided, checks project-local scope first, then global. #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$AppName,
+        [string]$CatalogDir,
+        [string]$Platform,
+        [string]$Version
+    )
+
+    # If no explicit CatalogDir, search project-local first then global
+    if (-not $CatalogDir) {
+        $projectDir = Get-CatalogDir -Scope 'Project'
+        $result = Resolve-MapInCatalog -AppName $AppName -CatalogDir $projectDir `
+            -Platform:$Platform -Version:$Version
+        if ($result) { return $result }
+
+        $globalDir = Get-CatalogDir -Scope 'Global'
+        return Resolve-MapInCatalog -AppName $AppName -CatalogDir $globalDir `
+            -Platform:$Platform -Version:$Version
+    }
+
+    $index = @(Get-CatalogIndex -CatalogDir $CatalogDir)
+    if ($index.Count -eq 0) { return $null }
+
+    $candidates = @($index | Where-Object { $_.name -eq $AppName })
+    if ($Platform) { $candidates = @($candidates | Where-Object { $_.platform -eq $Platform }) }
+    if ($Version)  { $candidates = @($candidates | Where-Object { $_.version -eq $Version }) }
+
+    if ($candidates.Count -eq 0) { return $null }
+
+    # Pick the most recent by capturedAt
+    $best = $candidates | Sort-Object -Property capturedAt -Descending | Select-Object -First 1
+    $fullPath = Join-Path $CatalogDir $best.path
+
+    if (-not (Test-Path $fullPath)) { return $null }
+    return $fullPath
+}
+
+function Export-AppMap {
+    <# Copy an app-map from the project-local catalog to the global catalog. #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$AppName,
+        [ValidateSet('Global')][string]$To = 'Global'
+    )
+    $srcDir = Get-CatalogDir -Scope 'Project'
+    $dstDir = Get-CatalogDir -Scope $To
+    $srcPath = Resolve-MapInCatalog -AppName $AppName -CatalogDir $srcDir
+    if (-not $srcPath) { throw "No map found for '$AppName' in project catalog." }
+    $map = Get-Content $srcPath -Raw | ConvertFrom-Json
+    Add-MapToCatalog -Map $map -CatalogDir $dstDir
+    Write-Host "Exported '$AppName' map to $dstDir"
+}
+
+function Import-AppMap {
+    <# Copy an app-map from the global catalog into the project-local catalog. #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$AppName,
+        [ValidateSet('Global')][string]$From = 'Global'
+    )
+    $srcDir = Get-CatalogDir -Scope $From
+    $dstDir = Get-CatalogDir -Scope 'Project'
+    $srcPath = Resolve-MapInCatalog -AppName $AppName -CatalogDir $srcDir
+    if (-not $srcPath) { throw "No map found for '$AppName' in global catalog." }
+    $map = Get-Content $srcPath -Raw | ConvertFrom-Json
+    Add-MapToCatalog -Map $map -CatalogDir $dstDir
+    Write-Host "Imported '$AppName' map to $dstDir"
+}
+
+function Import-SeedCatalog {
+    <# Merge the repo's seed catalog into a user catalog directory.
+       Copies maps that don't already exist; adds missing index entries. #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$SeedDir,
+        [Parameter(Mandatory)][string]$CatalogDir
+    )
+
+    if (-not (Test-Path $SeedDir)) { return 0 }
+    if (-not (Test-Path $CatalogDir)) {
+        New-Item -ItemType Directory -Force -Path $CatalogDir | Out-Null
+    }
+
+    $seedIndex = Get-CatalogIndex -CatalogDir $SeedDir
+    $userIndex = [System.Collections.Generic.List[object]]::new()
+    $existingIndex = Get-CatalogIndex -CatalogDir $CatalogDir
+    foreach ($entry in $existingIndex) { $userIndex.Add($entry) }
+
+    $imported = 0
+    foreach ($entry in $seedIndex) {
+        $srcFile = Join-Path $SeedDir $entry.path
+        $dstFile = Join-Path $CatalogDir $entry.path
+
+        # Skip if already exists in user catalog
+        $exists = $existingIndex | Where-Object { $_.path -eq $entry.path }
+        if ($exists) { continue }
+
+        if (Test-Path $srcFile) {
+            Copy-Item -Path $srcFile -Destination $dstFile -Force
+            $userIndex.Add($entry)
+            $imported++
+        }
+    }
+
+    if ($imported -gt 0) {
+        $indexPath = Join-Path $CatalogDir 'index.json'
+        ($userIndex | ConvertTo-Json -Depth 5) | Set-Content -Path $indexPath -Encoding UTF8
+    }
+
+    return $imported
+}
