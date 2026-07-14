@@ -168,10 +168,19 @@ Both are verified working against ScriptEditor 6.6 (Roslyn 4.7.0).
 
 ## Error handling: ScriptEditor not found
 
-If ScriptEditor is not installed or the path is wrong, `install.ps1` and `le-validate.dll` will
-both report the error clearly and exit with code 2 or 3.
+If ScriptEditor is not found at the standard path (`C:\Program Files\Login VSI\ScriptEditor`),
+**ask the user** where it is installed. Do not silently fail or skip validation.
 
-To obtain ScriptEditor:
+Prompt the user with something like:
+> "ScriptEditor was not found at the default location. Where is your ScriptEditor installed?
+> Please provide the path (e.g., `D:\Tools\ScriptEditor`)."
+
+Once the user provides the path, use it with the `-EditorRoot` parameter:
+```
+.\install.ps1 -EditorRoot "D:\Tools\ScriptEditor"
+```
+
+If ScriptEditor is not installed at all, guide the user:
 1. Log in to your Login Enterprise appliance web interface.
 2. Navigate to the Downloads or Tools section.
 3. Download the ScriptEditor package (`.zip`).

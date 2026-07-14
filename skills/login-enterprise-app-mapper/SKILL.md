@@ -69,6 +69,12 @@ wants to supply verified identifiers.
 - `login-enterprise-script-runner` skill installed at the expected sibling path.
 - A ScriptEditor deployment with the standalone engine (`EngineDir`).
 
+**If the engine is not found at the expected path, ask the user:**
+> "Where is your ScriptEditor installed? I need the path to the engine directory
+> (containing `LoginEnterprise.Engine.Standalone.exe`)."
+
+Then pass the user-provided path as `-EngineDir`. Do not fail silently.
+
 ### Web mapping
 - **Python 3** on PATH.
 - **Playwright**: `pip install playwright && playwright install chromium`.
