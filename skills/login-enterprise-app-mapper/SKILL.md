@@ -69,11 +69,19 @@ wants to supply verified identifiers.
 - `login-enterprise-script-runner` skill installed at the expected sibling path.
 - A ScriptEditor deployment with the standalone engine (`EngineDir`).
 
-**If the engine is not found at the expected path, ask the user:**
-> "Where is your ScriptEditor installed? I need the path to the engine directory
+The mapper checks for the engine in this order:
+1. Explicit `-EngineDir` parameter
+2. Saved config at `~/.login-enterprise/config.json`
+3. Standard path `C:\Program Files\Login VSI\ScriptEditor\engine`
+
+**If not found, ask the user** — do not fail silently:
+> "Where is your ScriptEditor/engine installed? I need the path to the engine directory
 > (containing `LoginEnterprise.Engine.Standalone.exe`)."
 
-Then pass the user-provided path as `-EngineDir`. Do not fail silently.
+Then save it so they don't have to provide it again:
+```
+.\install\check-setup.ps1 -EngineDir "D:\Tools\ScriptEditor\engine" -Save
+```
 
 ### Web mapping
 - **Python 3** on PATH.

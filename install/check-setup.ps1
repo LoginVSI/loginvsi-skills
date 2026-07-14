@@ -14,18 +14,20 @@
 .PARAMETER SkillsRoot  Override the skills root directory (default: auto-detect from script location).
 .PARAMETER EditorRoot  Explicit path to the ScriptEditor root (skips auto-detection).
 .PARAMETER EngineDir   Explicit path to the engine directory containing LoginEnterprise.Engine.Standalone.exe (skips auto-detection).
+.PARAMETER Save        Save the resolved EditorRoot and EngineDir to ~/.login-enterprise/config.json for future use.
 
 .EXAMPLE
   .\install\check-setup.ps1
   .\install\check-setup.ps1 -Json
-  .\install\check-setup.ps1 -EditorRoot "C:\ScriptEditor" -EngineDir "C:\ScriptEditor\engine"
+  .\install\check-setup.ps1 -EditorRoot "C:\ScriptEditor" -EngineDir "C:\ScriptEditor\engine" -Save
 #>
 [CmdletBinding()]
 param(
     [switch]$Json,
     [string]$SkillsRoot,
     [string]$EditorRoot,
-    [string]$EngineDir
+    [string]$EngineDir,
+    [switch]$Save
 )
 
 $ErrorActionPreference = 'Stop'
@@ -38,11 +40,41 @@ if (-not $SkillsRoot) {
     if (-not $SkillsRoot) { $SkillsRoot = Join-Path $PSScriptRoot '..' }
 }
 
+# --- config file helpers ------------------------------------------------------------------
+# Persistent config at ~/.login-enterprise/config.json stores user-provided paths
+# so they only need to be specified once.
+
+function Get-LeConfigPath {
+    return Join-Path $HOME '.login-enterprise/config.json'
+}
+
+function Get-LeConfig {
+    $path = Get-LeConfigPath
+    if (Test-Path $path) {
+        try { return (Get-Content $path -Raw | ConvertFrom-Json) }
+        catch { return $null }
+    }
+    return $null
+}
+
+function Save-LeConfig {
+    param([hashtable]$Config)
+    $dir = Join-Path $HOME '.login-enterprise'
+    if (-not (Test-Path $dir)) {
+        New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    }
+    $Config | ConvertTo-Json | Set-Content (Get-LeConfigPath) -Encoding UTF8
+}
+
 # --- detection helpers ---------------------------------------------------------------------
 
 function Find-EditorRoot {
-    # Only check the standard install path -- no recursive scanning.
-    # If ScriptEditor is elsewhere, the user must specify -EditorRoot.
+    # 1. Check config file
+    $config = Get-LeConfig
+    if ($config -and $config.editorRoot -and (Test-Path (Join-Path $config.editorRoot 'bin\ScriptAnalyzer.dll'))) {
+        return $config.editorRoot
+    }
+    # 2. Check standard install path
     $standardPath = 'C:\Program Files\Login VSI\ScriptEditor'
     if (Test-Path (Join-Path $standardPath 'bin\ScriptAnalyzer.dll')) {
         return $standardPath
@@ -51,8 +83,12 @@ function Find-EditorRoot {
 }
 
 function Find-EngineDir {
-    # Engine lives inside the ScriptEditor directory.
-    # Only check the standard path -- no recursive scanning.
+    # 1. Check config file
+    $config = Get-LeConfig
+    if ($config -and $config.engineDir -and (Test-Path (Join-Path $config.engineDir 'LoginEnterprise.Engine.Standalone.exe'))) {
+        return $config.engineDir
+    }
+    # 2. Check standard path
     $standardPath = 'C:\Program Files\Login VSI\ScriptEditor\engine'
     if (Test-Path (Join-Path $standardPath 'LoginEnterprise.Engine.Standalone.exe')) {
         return $standardPath
@@ -106,6 +142,20 @@ $editorRoot = if ($EditorRoot)  { $EditorRoot }
 $engineDir  = if ($EngineDir)   { $EngineDir }
               elseif ($onWindows) { Find-EngineDir }
               else { $null }
+
+# Save paths to config if -Save was specified and paths were found
+if ($Save -and ($editorRoot -or $engineDir)) {
+    $config = Get-LeConfig
+    $configHash = @{}
+    if ($config) {
+        if ($config.editorRoot) { $configHash['editorRoot'] = $config.editorRoot }
+        if ($config.engineDir)  { $configHash['engineDir']  = $config.engineDir }
+    }
+    if ($editorRoot) { $configHash['editorRoot'] = $editorRoot }
+    if ($engineDir)  { $configHash['engineDir']  = $engineDir }
+    Save-LeConfig -Config $configHash
+    Write-Host "Saved paths to $(Get-LeConfigPath)" -ForegroundColor Green
+}
 
 # Engine version -- extract from the exe's FileVersionInfo if available
 $engineVersion = $null

@@ -65,7 +65,11 @@ Test-Path "C:\Program Files\Login VSI\ScriptEditor\bin\ScriptAnalyzer.dll"
 Test-Path "C:\Program Files\Login VSI\ScriptEditor\engine\LoginEnterprise.Engine.Standalone.exe"
 ```
 
-> **Non-standard path?** If you extract ScriptEditor elsewhere, use the `-EditorRoot` and `-EngineDir` parameters with `check-setup.ps1` and the validator/runner scripts.
+> **Non-standard path?** If you extract ScriptEditor elsewhere, save the path so all skills find it automatically:
+> ```powershell
+> .\install\check-setup.ps1 -EditorRoot "D:\Tools\ScriptEditor" -EngineDir "D:\Tools\ScriptEditor\engine" -Save
+> ```
+> This saves to `~/.login-enterprise/config.json` and is read by all skills going forward.
 
 ## Step 4: Build the validator
 

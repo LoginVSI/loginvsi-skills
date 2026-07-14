@@ -168,17 +168,25 @@ Both are verified working against ScriptEditor 6.6 (Roslyn 4.7.0).
 
 ## Error handling: ScriptEditor not found
 
-If ScriptEditor is not found at the standard path (`C:\Program Files\Login VSI\ScriptEditor`),
-**ask the user** where it is installed. Do not silently fail or skip validation.
+The validator checks for ScriptEditor in this order:
+1. Explicit `-EditorRoot` parameter (if provided)
+2. Saved config at `~/.login-enterprise/config.json`
+3. Standard path `C:\Program Files\Login VSI\ScriptEditor`
+
+If ScriptEditor is not found, **ask the user** where it is installed. Do not silently fail.
 
 Prompt the user with something like:
 > "ScriptEditor was not found at the default location. Where is your ScriptEditor installed?
 > Please provide the path (e.g., `D:\Tools\ScriptEditor`)."
 
-Once the user provides the path, use it with the `-EditorRoot` parameter:
+Once the user provides the path, use it with `-EditorRoot` and **save it** so they don't
+have to provide it again:
 ```
+.\install\check-setup.ps1 -EditorRoot "D:\Tools\ScriptEditor" -Save
 .\install.ps1 -EditorRoot "D:\Tools\ScriptEditor"
 ```
+
+The saved config at `~/.login-enterprise/config.json` is read automatically by all skills.
 
 If ScriptEditor is not installed at all, guide the user:
 1. Log in to your Login Enterprise appliance web interface.

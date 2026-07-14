@@ -41,11 +41,19 @@ does not generate them (use `login-enterprise-script-writer`) and does not reimp
   `login-enterprise-script-validator` skill (run its `install.ps1` once) and the deployed
   ScriptEditor root (`EditorDir`).
 
-**If ScriptEditor or the engine is not found at the expected path, ask the user:**
+The runner checks for the engine in this order:
+1. Explicit `-EngineDir` / `-EditorDir` parameters
+2. Saved config at `~/.login-enterprise/config.json`
+3. Standard path `C:\Program Files\Login VSI\ScriptEditor\engine`
+
+**If not found, ask the user** — do not fail silently:
 > "Where is your ScriptEditor installed? I need the path to the engine directory
 > (containing `LoginEnterprise.Engine.Standalone.exe`) and the ScriptEditor root."
 
-Then use `-EngineDir` and `-EditorDir` with the user-provided paths. Do not fail silently.
+Then save it so they don't have to provide it again:
+```
+.\install\check-setup.ps1 -EditorRoot "D:\Tools\ScriptEditor" -EngineDir "D:\Tools\ScriptEditor\engine" -Save
+```
 
 ## Required script header
 
