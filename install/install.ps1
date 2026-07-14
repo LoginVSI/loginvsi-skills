@@ -3,14 +3,23 @@
 .SYNOPSIS
     Install Login Enterprise skills for supported AI coding agents.
 .PARAMETER Agent
-    Which agent to install for: Claude, Codex, or All.
+    Which agent to install for: Claude, Codex, Gemini, Cursor, or All.
+.PARAMETER Project
+    Install Claude Code skills to project-level (.claude/skills/) instead of global.
+.PARAMETER Global
+    Install Gemini CLI skills to global (~/.gemini/skills/) instead of project-level.
 .EXAMPLE
     .\install.ps1 -Agent Claude
+    .\install.ps1 -Agent Claude -Project
+    .\install.ps1 -Agent Gemini
+    .\install.ps1 -Agent Gemini -Global
     .\install.ps1 -Agent All
 #>
 param(
     [ValidateSet('Claude', 'Codex', 'Gemini', 'Cursor', 'All')]
-    [string]$Agent
+    [string]$Agent,
+    [switch]$Project,
+    [switch]$Global
 )
 
 $ErrorActionPreference = 'Stop'
@@ -51,10 +60,10 @@ Write-Host ""
 if (-not $Agent) {
     Write-Host "Select agents to install for:"
     Write-Host ""
-    Write-Host "  1) Claude Code (~/.claude/skills/)"
-    Write-Host "  2) OpenAI Codex (.agent-skills/ in current project)"
-    Write-Host "  3) Gemini CLI (~/.gemini/skills/)"
-    Write-Host "  4) Cursor (.cursor/skills/ in current project)"
+    Write-Host "  1) Claude Code     (global: ~/.claude/skills/)"
+    Write-Host "  2) OpenAI Codex    (project: .agent-skills/)"
+    Write-Host "  3) Gemini CLI      (project: .gemini/skills/)"
+    Write-Host "  4) Cursor          (project: .cursor/skills/)"
     Write-Host "  5) All"
     Write-Host ""
     $choice = Read-Host "Choice [1/2/3/4/5]"
@@ -74,111 +83,58 @@ $installGemini = $Agent -in @('Gemini', 'All')
 $installCursor = $Agent -in @('Cursor', 'All')
 $installed = 0
 
-# Claude Code
+# Helper: install skills to a target directory
+function Install-SkillsTo {
+    param([string]$AgentName, [string]$TargetDir)
+    if (-not (Test-Path $TargetDir)) {
+        New-Item -ItemType Directory -Path $TargetDir -Force | Out-Null
+    }
+    Write-Host ""
+    Write-Host "Installing for $AgentName -> $TargetDir"
+    foreach ($skill in $skills) {
+        $target = Join-Path $TargetDir $skill
+        $source = Join-Path $SkillsDir $skill
+        $existing = Get-Item $target -Force -ErrorAction SilentlyContinue
+        if ($existing -and $existing.LinkType -eq 'SymbolicLink') {
+            Remove-Item $target -Force
+            Write-Host "  Replacing broken symlink: $skill" -ForegroundColor Yellow
+        }
+        if (Test-Path $target) {
+            Write-Host "  Skipping $skill (already exists)" -ForegroundColor Yellow
+        } else {
+            New-Item -ItemType SymbolicLink -Path $target -Target $source | Out-Null
+            Write-Host "  + $skill" -ForegroundColor Green
+            $script:installed++
+        }
+    }
+}
+
+# Claude Code (default: global ~/.claude/skills/, -Project for .claude/skills/)
 if ($installClaude) {
-    $claudeSkillsDir = Join-Path (Join-Path $HOME '.claude') 'skills'
-    if (-not (Test-Path $claudeSkillsDir)) {
-        New-Item -ItemType Directory -Path $claudeSkillsDir -Force | Out-Null
-    }
-    Write-Host ""
-    Write-Host "Installing for Claude Code -> $claudeSkillsDir"
-    foreach ($skill in $skills) {
-        $target = Join-Path $claudeSkillsDir $skill
-        $source = Join-Path $SkillsDir $skill
-        $existing = Get-Item $target -Force -ErrorAction SilentlyContinue
-        if ($existing -and $existing.LinkType -eq 'SymbolicLink') {
-            # Symlink exists but may be broken — remove and recreate
-            Remove-Item $target -Force
-            Write-Host "  Replacing broken symlink: $skill" -ForegroundColor Yellow
-        }
-        if (Test-Path $target) {
-            Write-Host "  Skipping $skill (already exists)" -ForegroundColor Yellow
-        } else {
-            New-Item -ItemType SymbolicLink -Path $target -Target $source | Out-Null
-            Write-Host "  + $skill" -ForegroundColor Green
-            $installed++
-        }
+    if ($Project) {
+        Install-SkillsTo "Claude Code (project)" (Join-Path (Get-Location) '.claude/skills')
+    } else {
+        Install-SkillsTo "Claude Code" (Join-Path (Join-Path $HOME '.claude') 'skills')
     }
 }
 
-# Codex
+# OpenAI Codex (project: .agent-skills/)
 if ($installCodex) {
-    $codexSkillsDir = Join-Path (Get-Location) '.agent-skills'
-    if (-not (Test-Path $codexSkillsDir)) {
-        New-Item -ItemType Directory -Path $codexSkillsDir -Force | Out-Null
-    }
-    Write-Host ""
-    Write-Host "Installing for OpenAI Codex -> $codexSkillsDir"
-    foreach ($skill in $skills) {
-        $target = Join-Path $codexSkillsDir $skill
-        $source = Join-Path $SkillsDir $skill
-        $existing = Get-Item $target -Force -ErrorAction SilentlyContinue
-        if ($existing -and $existing.LinkType -eq 'SymbolicLink') {
-            # Symlink exists but may be broken — remove and recreate
-            Remove-Item $target -Force
-            Write-Host "  Replacing broken symlink: $skill" -ForegroundColor Yellow
-        }
-        if (Test-Path $target) {
-            Write-Host "  Skipping $skill (already exists)" -ForegroundColor Yellow
-        } else {
-            New-Item -ItemType SymbolicLink -Path $target -Target $source | Out-Null
-            Write-Host "  + $skill" -ForegroundColor Green
-            $installed++
-        }
-    }
+    Install-SkillsTo "OpenAI Codex" (Join-Path (Get-Location) '.agent-skills')
 }
 
-# Gemini CLI
+# Gemini CLI (default: project .gemini/skills/, -Global for ~/.gemini/skills/)
 if ($installGemini) {
-    $geminiSkillsDir = Join-Path (Join-Path $HOME '.gemini') 'skills'
-    if (-not (Test-Path $geminiSkillsDir)) {
-        New-Item -ItemType Directory -Path $geminiSkillsDir -Force | Out-Null
-    }
-    Write-Host ""
-    Write-Host "Installing for Gemini CLI -> $geminiSkillsDir"
-    foreach ($skill in $skills) {
-        $target = Join-Path $geminiSkillsDir $skill
-        $source = Join-Path $SkillsDir $skill
-        $existing = Get-Item $target -Force -ErrorAction SilentlyContinue
-        if ($existing -and $existing.LinkType -eq 'SymbolicLink') {
-            # Symlink exists but may be broken — remove and recreate
-            Remove-Item $target -Force
-            Write-Host "  Replacing broken symlink: $skill" -ForegroundColor Yellow
-        }
-        if (Test-Path $target) {
-            Write-Host "  Skipping $skill (already exists)" -ForegroundColor Yellow
-        } else {
-            New-Item -ItemType SymbolicLink -Path $target -Target $source | Out-Null
-            Write-Host "  + $skill" -ForegroundColor Green
-            $installed++
-        }
+    if ($Global) {
+        Install-SkillsTo "Gemini CLI (global)" (Join-Path (Join-Path $HOME '.gemini') 'skills')
+    } else {
+        Install-SkillsTo "Gemini CLI" (Join-Path (Get-Location) '.gemini/skills')
     }
 }
 
-# Cursor
+# Cursor (project: .cursor/skills/)
 if ($installCursor) {
-    $cursorSkillsDir = Join-Path (Join-Path (Get-Location) '.cursor') 'skills'
-    if (-not (Test-Path $cursorSkillsDir)) {
-        New-Item -ItemType Directory -Path $cursorSkillsDir -Force | Out-Null
-    }
-    Write-Host ""
-    Write-Host "Installing for Cursor -> $cursorSkillsDir"
-    foreach ($skill in $skills) {
-        $target = Join-Path $cursorSkillsDir $skill
-        $source = Join-Path $SkillsDir $skill
-        $existing = Get-Item $target -Force -ErrorAction SilentlyContinue
-        if ($existing -and $existing.LinkType -eq 'SymbolicLink') {
-            Remove-Item $target -Force
-            Write-Host "  Replacing broken symlink: $skill" -ForegroundColor Yellow
-        }
-        if (Test-Path $target) {
-            Write-Host "  Skipping $skill (already exists)" -ForegroundColor Yellow
-        } else {
-            New-Item -ItemType SymbolicLink -Path $target -Target $source | Out-Null
-            Write-Host "  + $skill" -ForegroundColor Green
-            $installed++
-        }
-    }
+    Install-SkillsTo "Cursor" (Join-Path (Join-Path (Get-Location) '.cursor') 'skills')
 }
 
 Write-Host ""

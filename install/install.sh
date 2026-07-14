@@ -32,27 +32,36 @@ echo "Found ${#SKILLS[@]} skill(s): ${SKILLS[*]}"
 echo ""
 
 # Agent selection
+# Defaults: Claude=global, Codex/Gemini/Cursor=project-level
+# Override with --claude-project or --gemini-global
 INSTALL_CLAUDE=false
 INSTALL_CODEX=false
 INSTALL_GEMINI=false
 INSTALL_CURSOR=false
+CLAUDE_MODE="global"   # default for Claude
+GEMINI_MODE="project"  # default for Gemini
 
 if [ $# -gt 0 ]; then
     for arg in "$@"; do
         case "$arg" in
-            --claude) INSTALL_CLAUDE=true ;;
-            --codex)  INSTALL_CODEX=true ;;
-            --gemini) INSTALL_GEMINI=true ;;
-            --cursor) INSTALL_CURSOR=true ;;
-            --all)    INSTALL_CLAUDE=true; INSTALL_CODEX=true; INSTALL_GEMINI=true; INSTALL_CURSOR=true ;;
+            --claude)          INSTALL_CLAUDE=true ;;
+            --claude-project)  INSTALL_CLAUDE=true; CLAUDE_MODE="project" ;;
+            --codex)           INSTALL_CODEX=true ;;
+            --gemini)          INSTALL_GEMINI=true ;;
+            --gemini-global)   INSTALL_GEMINI=true; GEMINI_MODE="global" ;;
+            --cursor)          INSTALL_CURSOR=true ;;
+            --all)             INSTALL_CLAUDE=true; INSTALL_CODEX=true; INSTALL_GEMINI=true; INSTALL_CURSOR=true ;;
             --help)
                 echo "Usage: install.sh [--claude] [--codex] [--gemini] [--cursor] [--all]"
-                echo "  --claude  Install for Claude Code"
-                echo "  --codex   Install for OpenAI Codex"
-                echo "  --gemini  Install for Gemini CLI"
-                echo "  --cursor  Install for Cursor"
-                echo "  --all     Install for all supported agents"
-                echo "  (no args) Interactive selection"
+                echo ""
+                echo "  --claude          Install for Claude Code (global: ~/.claude/skills/)"
+                echo "  --claude-project  Install for Claude Code (project: .claude/skills/)"
+                echo "  --codex           Install for OpenAI Codex (project: .agent-skills/)"
+                echo "  --gemini          Install for Gemini CLI (project: .gemini/skills/)"
+                echo "  --gemini-global   Install for Gemini CLI (global: ~/.gemini/skills/)"
+                echo "  --cursor          Install for Cursor (project: .cursor/skills/)"
+                echo "  --all             Install for all supported agents (default locations)"
+                echo "  (no args)         Interactive selection"
                 exit 0
                 ;;
             *) echo -e "${RED}Unknown option: $arg${NC}"; exit 1 ;;
@@ -61,10 +70,10 @@ if [ $# -gt 0 ]; then
 else
     echo "Select agents to install for:"
     echo ""
-    echo "  1) Claude Code (~/.claude/skills/)"
-    echo "  2) OpenAI Codex (.agent-skills/ in current project)"
-    echo "  3) Gemini CLI (~/.gemini/skills/)"
-    echo "  4) Cursor (.cursor/skills/ in current project)"
+    echo "  1) Claude Code     (global: ~/.claude/skills/)"
+    echo "  2) OpenAI Codex    (project: .agent-skills/)"
+    echo "  3) Gemini CLI      (project: .gemini/skills/)"
+    echo "  4) Cursor          (project: .cursor/skills/)"
     echo "  5) All"
     echo ""
     read -rp "Choice [1/2/3/4/5]: " choice
@@ -80,96 +89,56 @@ fi
 
 installed=0
 
-# Claude Code
+# Helper: install skills to a target directory
+install_to_dir() {
+    local agent_name="$1"
+    local target_dir="$2"
+    mkdir -p "$target_dir"
+    echo ""
+    echo "Installing for $agent_name → $target_dir"
+    for skill in "${SKILLS[@]}"; do
+        local target="$target_dir/$skill"
+        # Remove broken symlinks
+        if [ -L "$target" ] && [ ! -e "$target" ]; then
+            echo -e "  ${YELLOW}Removing broken symlink: $skill${NC}"
+            rm "$target"
+        fi
+        if [ -L "$target" ] || [ -d "$target" ]; then
+            echo -e "  ${YELLOW}Skipping $skill (already exists)${NC}"
+        else
+            ln -s "$SKILLS_DIR/$skill" "$target"
+            echo -e "  ${GREEN}✓ $skill${NC}"
+            installed=$((installed + 1))
+        fi
+    done
+}
+
+# Claude Code (default: global ~/.claude/skills/, option: project .claude/skills/)
 if [ "$INSTALL_CLAUDE" = true ]; then
-    CLAUDE_SKILLS_DIR="$HOME/.claude/skills"
-    mkdir -p "$CLAUDE_SKILLS_DIR"
-    echo ""
-    echo "Installing for Claude Code → $CLAUDE_SKILLS_DIR"
-    for skill in "${SKILLS[@]}"; do
-        target="$CLAUDE_SKILLS_DIR/$skill"
-        # Remove broken symlinks
-        if [ -L "$target" ] && [ ! -e "$target" ]; then
-            echo -e "  ${YELLOW}Removing broken symlink: $skill${NC}"
-            rm "$target"
-        fi
-        if [ -L "$target" ] || [ -d "$target" ]; then
-            echo -e "  ${YELLOW}Skipping $skill (already exists)${NC}"
-        else
-            ln -s "$SKILLS_DIR/$skill" "$target"
-            echo -e "  ${GREEN}✓ $skill${NC}"
-            installed=$((installed + 1))
-        fi
-    done
+    if [ "$CLAUDE_MODE" = "project" ]; then
+        install_to_dir "Claude Code (project)" "$(pwd)/.claude/skills"
+    else
+        install_to_dir "Claude Code" "$HOME/.claude/skills"
+    fi
 fi
 
-# Codex
+# OpenAI Codex (project: .agent-skills/)
 if [ "$INSTALL_CODEX" = true ]; then
-    CODEX_SKILLS_DIR="$(pwd)/.agent-skills"
-    mkdir -p "$CODEX_SKILLS_DIR"
-    echo ""
-    echo "Installing for OpenAI Codex → $CODEX_SKILLS_DIR"
-    for skill in "${SKILLS[@]}"; do
-        target="$CODEX_SKILLS_DIR/$skill"
-        # Remove broken symlinks
-        if [ -L "$target" ] && [ ! -e "$target" ]; then
-            echo -e "  ${YELLOW}Removing broken symlink: $skill${NC}"
-            rm "$target"
-        fi
-        if [ -L "$target" ] || [ -d "$target" ]; then
-            echo -e "  ${YELLOW}Skipping $skill (already exists)${NC}"
-        else
-            ln -s "$SKILLS_DIR/$skill" "$target"
-            echo -e "  ${GREEN}✓ $skill${NC}"
-            installed=$((installed + 1))
-        fi
-    done
+    install_to_dir "OpenAI Codex" "$(pwd)/.agent-skills"
 fi
 
-# Gemini CLI
+# Gemini CLI (default: project .gemini/skills/, option: global ~/.gemini/skills/)
 if [ "$INSTALL_GEMINI" = true ]; then
-    GEMINI_SKILLS_DIR="$HOME/.gemini/skills"
-    mkdir -p "$GEMINI_SKILLS_DIR"
-    echo ""
-    echo "Installing for Gemini CLI → $GEMINI_SKILLS_DIR"
-    for skill in "${SKILLS[@]}"; do
-        target="$GEMINI_SKILLS_DIR/$skill"
-        # Remove broken symlinks
-        if [ -L "$target" ] && [ ! -e "$target" ]; then
-            echo -e "  ${YELLOW}Removing broken symlink: $skill${NC}"
-            rm "$target"
-        fi
-        if [ -L "$target" ] || [ -d "$target" ]; then
-            echo -e "  ${YELLOW}Skipping $skill (already exists)${NC}"
-        else
-            ln -s "$SKILLS_DIR/$skill" "$target"
-            echo -e "  ${GREEN}✓ $skill${NC}"
-            installed=$((installed + 1))
-        fi
-    done
+    if [ "$GEMINI_MODE" = "global" ]; then
+        install_to_dir "Gemini CLI (global)" "$HOME/.gemini/skills"
+    else
+        install_to_dir "Gemini CLI" "$(pwd)/.gemini/skills"
+    fi
 fi
 
-# Cursor
+# Cursor (project: .cursor/skills/)
 if [ "$INSTALL_CURSOR" = true ]; then
-    CURSOR_SKILLS_DIR="$(pwd)/.cursor/skills"
-    mkdir -p "$CURSOR_SKILLS_DIR"
-    echo ""
-    echo "Installing for Cursor → $CURSOR_SKILLS_DIR"
-    for skill in "${SKILLS[@]}"; do
-        target="$CURSOR_SKILLS_DIR/$skill"
-        # Remove broken symlinks
-        if [ -L "$target" ] && [ ! -e "$target" ]; then
-            echo -e "  ${YELLOW}Removing broken symlink: $skill${NC}"
-            rm "$target"
-        fi
-        if [ -L "$target" ] || [ -d "$target" ]; then
-            echo -e "  ${YELLOW}Skipping $skill (already exists)${NC}"
-        else
-            ln -s "$SKILLS_DIR/$skill" "$target"
-            echo -e "  ${GREEN}✓ $skill${NC}"
-            installed=$((installed + 1))
-        fi
-    done
+    install_to_dir "Cursor" "$(pwd)/.cursor/skills"
 fi
 
 echo ""

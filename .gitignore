@@ -13,6 +13,11 @@ __pycache__/
 selftest-results.txt
 smoke-results.txt
 
+# Project-level agent skill directories (created by install scripts)
+.agent-skills/
+.gemini/
+.cursor/
+
 # App-map working files
 .app-maps/
 web-dump.json
