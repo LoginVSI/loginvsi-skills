@@ -42,7 +42,7 @@ When the user provides a natural language workflow description, the mapper:
    - Performs the action using the primary finder's result (with fallback chain)
    - Waits for UI to settle
 
-3. **Runs the probe** on the real engine via `login-enterprise-script-runner`
+3. **Runs the probe** on the real engine via `login-enterprise-run-script`
 
 4. **Parses the structured log output** into control entries with finder results
 
@@ -251,7 +251,7 @@ For web workflows, the mapper uses the existing standalone Python Playwright pro
 ## Prerequisites
 
 - Windows (for desktop mapping — engine is .NET Framework 4.8)
-- `login-enterprise-script-runner` skill installed (sibling path)
+- `login-enterprise-run-script` skill installed (sibling path)
 - ScriptEditor deployment with standalone engine
 - Python 3 + Playwright (for web mapping only)
 

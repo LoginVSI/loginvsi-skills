@@ -26,7 +26,7 @@ loginvsi-skills/
 │   └── workflows/
 │       └── validate-skills.yml
 ├── skills/
-│   ├── login-enterprise-script-writer/
+│   ├── login-enterprise-write-script/
 │   │   ├── SKILL.md
 │   │   ├── references/
 │   │   │   ├── api-reference.md
@@ -37,7 +37,7 @@ loginvsi-skills/
 │   │   │       └── web-login.cs
 │   │   └── assets/
 │   │       └── script-template.cs
-│   └── login-enterprise-script-validator/
+│   └── login-enterprise-validate-script/
 │       ├── SKILL.md
 │       ├── scripts/
 │       │   └── validate.ps1
@@ -102,7 +102,7 @@ The first end-to-end deliverable. When complete, a user can clone the repo, run 
 
 ### Done Criteria
 
-1. `npx skills-ref validate skills/login-enterprise-script-writer` passes.
+1. `npx skills-ref validate skills/login-enterprise-write-script` passes.
 2. Install script works on Windows (PowerShell) and Unix (bash) for Claude Code and Codex.
 3. Claude Code activates the skill when asked to "write a Login Enterprise script."
 4. CI runs and passes on push/PR.
@@ -134,7 +134,7 @@ Built on top of Slice 1. Adds the second skill with runtime ScriptEditor detecti
 
 ### Done Criteria
 
-1. `npx skills-ref validate skills/login-enterprise-script-validator` passes.
+1. `npx skills-ref validate skills/login-enterprise-validate-script` passes.
 2. `validate.ps1` detects ScriptEditor presence correctly.
 3. `validate.ps1` provides clear download guidance when ScriptEditor is missing.
 4. `validate.ps1` successfully validates a `.cs` file when ScriptEditor is present.

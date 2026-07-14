@@ -78,7 +78,7 @@ Required for: script-validator, script-runner
 The validator is a thin wrapper around the ScriptEditor's Roslyn analyzers. It must be built once per machine.
 
 ```powershell
-cd skills\login-enterprise-script-validator\references\validator
+cd skills\login-enterprise-validate-script\references\validator
 .\install.ps1
 ```
 

@@ -93,7 +93,7 @@ The Markdown body after `---` contains instructions the agent follows when the s
 
 ```markdown
 ---
-name: login-enterprise-script-writer
+name: login-enterprise-write-script
 description: >-
   Generate a complete Login Enterprise .cs automation script from natural-language
   instructions. Supports Desktop (UIAutomation), Playwright web, and legacy CSS/Selenium

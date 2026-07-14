@@ -18,10 +18,10 @@ Skills are symlinked to `.agent-skills/` in your project directory.
 
 ```bash
 mkdir -p .agent-skills
-ln -s "$(pwd)/skills/login-enterprise-script-writer" .agent-skills/
-ln -s "$(pwd)/skills/login-enterprise-script-validator" .agent-skills/
-ln -s "$(pwd)/skills/login-enterprise-script-runner" .agent-skills/
-ln -s "$(pwd)/skills/login-enterprise-app-mapper" .agent-skills/
+ln -s "$(pwd)/skills/login-enterprise-write-script" .agent-skills/
+ln -s "$(pwd)/skills/login-enterprise-validate-script" .agent-skills/
+ln -s "$(pwd)/skills/login-enterprise-run-script" .agent-skills/
+ln -s "$(pwd)/skills/login-enterprise-map-application" .agent-skills/
 ln -s "$(pwd)/skills/login-enterprise-transcribe-video" .agent-skills/
 ```
 
@@ -29,10 +29,10 @@ ln -s "$(pwd)/skills/login-enterprise-transcribe-video" .agent-skills/
 
 ```powershell
 New-Item -ItemType Directory -Path ".agent-skills" -Force
-New-Item -ItemType SymbolicLink -Path ".agent-skills\login-enterprise-script-writer" -Target "$PWD\skills\login-enterprise-script-writer"
-New-Item -ItemType SymbolicLink -Path ".agent-skills\login-enterprise-script-validator" -Target "$PWD\skills\login-enterprise-script-validator"
-New-Item -ItemType SymbolicLink -Path ".agent-skills\login-enterprise-script-runner" -Target "$PWD\skills\login-enterprise-script-runner"
-New-Item -ItemType SymbolicLink -Path ".agent-skills\login-enterprise-app-mapper" -Target "$PWD\skills\login-enterprise-app-mapper"
+New-Item -ItemType SymbolicLink -Path ".agent-skills\login-enterprise-write-script" -Target "$PWD\skills\login-enterprise-write-script"
+New-Item -ItemType SymbolicLink -Path ".agent-skills\login-enterprise-validate-script" -Target "$PWD\skills\login-enterprise-validate-script"
+New-Item -ItemType SymbolicLink -Path ".agent-skills\login-enterprise-run-script" -Target "$PWD\skills\login-enterprise-run-script"
+New-Item -ItemType SymbolicLink -Path ".agent-skills\login-enterprise-map-application" -Target "$PWD\skills\login-enterprise-map-application"
 New-Item -ItemType SymbolicLink -Path ".agent-skills\login-enterprise-transcribe-video" -Target "$PWD\skills\login-enterprise-transcribe-video"
 ```
 

@@ -1,5 +1,5 @@
 ---
-name: login-enterprise-script-writer
+name: login-enterprise-write-script
 description: Use when a user wants a Login Enterprise application script for native Windows automation, NativeAutomationElement workflows, recorder-compatible built-in scripting functions, timer instrumentation, secure credential use, or Playwright-based web recorder functions. Generates a complete .cs script for the ScriptEditor/Engine and outputs ONLY the final script with no explanation.
 license: Apache-2.0
 compatibility: No specific requirements. Works on any platform.
@@ -34,10 +34,10 @@ skeletons, timer rules), but it **guesses** app-specific identifiers — desktop
 A script that validates clean still compiles with selectors that point at nothing.
 
 **Validated does not mean drives the app.** Mitigations:
-- **Before writing:** use `login-enterprise-app-mapper` to capture real identifiers into an
+- **Before writing:** use `login-enterprise-map-application` to capture real identifiers into an
   `app-map.json`, then pass it to this skill. The writer will use `suggestedFinder` calls from
   the map instead of guessing.
-- **After writing:** use `login-enterprise-script-runner` to verify the script actually drives
+- **After writing:** use `login-enterprise-run-script` to verify the script actually drives
   the app on the real engine.
 
 ## Procedure

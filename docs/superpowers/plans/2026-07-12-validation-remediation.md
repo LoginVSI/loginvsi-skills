@@ -23,9 +23,9 @@
 The most critical finding. The Login Enterprise `Wait()` API takes **seconds**, but shipped example `web-playwright.cs` may use `Wait(5000)` which would mean 5000 seconds, not 5 seconds.
 
 **Files:**
-- Audit: `skills/login-enterprise-script-writer/references/examples/*.cs`
-- Audit: `skills/login-enterprise-script-validator/references/examples/*.cs`
-- Audit: `skills/login-enterprise-script-runner/references/examples/*.cs`
+- Audit: `skills/login-enterprise-write-script/references/examples/*.cs`
+- Audit: `skills/login-enterprise-validate-script/references/examples/*.cs`
+- Audit: `skills/login-enterprise-run-script/references/examples/*.cs`
 - Modify: any files with incorrect `Wait()` values
 
 **Interfaces:**
@@ -54,7 +54,7 @@ Fix any documentation examples that show millisecond values.
 
 - [ ] **Step 4: Add a Wait() clarification to script-writer's api-cheatsheet.md**
 
-Read `skills/login-enterprise-script-writer/references/api-cheatsheet.md` and find the `Wait()` entry. If it doesn't already say "seconds, not milliseconds", add a note:
+Read `skills/login-enterprise-write-script/references/api-cheatsheet.md` and find the `Wait()` entry. If it doesn't already say "seconds, not milliseconds", add a note:
 
 ```markdown
 // Wait takes SECONDS, not milliseconds. Wait(5) = 5 seconds. Wait(0.5) = 500ms.
@@ -74,9 +74,9 @@ git commit -m "fix: correct Wait() values in examples — API takes seconds, not
 The validation found that `StopBrowser()` can throw after successful page interaction. Timer evidence is still valid but the final result shows as failed.
 
 **Files:**
-- Modify: `skills/login-enterprise-script-writer/SKILL.md`
-- Modify: `skills/login-enterprise-script-writer/references/skeletons.md`
-- Modify: `skills/login-enterprise-script-runner/SKILL.md`
+- Modify: `skills/login-enterprise-write-script/SKILL.md`
+- Modify: `skills/login-enterprise-write-script/references/skeletons.md`
+- Modify: `skills/login-enterprise-run-script/SKILL.md`
 
 **Interfaces:**
 - Consumes: nothing
@@ -111,12 +111,12 @@ verdict is `EndedWithErrors`.
 
 - [ ] **Step 3: Add cleanup pattern to skeletons.md**
 
-Read `skills/login-enterprise-script-writer/references/skeletons.md`. If the Playwright skeleton has a bare `StopBrowser()`, add the try/catch pattern as a comment showing the robust alternative.
+Read `skills/login-enterprise-write-script/references/skeletons.md`. If the Playwright skeleton has a bare `StopBrowser()`, add the try/catch pattern as a comment showing the robust alternative.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add skills/login-enterprise-script-writer/ skills/login-enterprise-script-runner/
+git add skills/login-enterprise-write-script/ skills/login-enterprise-run-script/
 git commit -m "docs: add browser cleanup and partial success guidance"
 ```
 
@@ -127,7 +127,7 @@ git commit -m "docs: add browser cleanup and partial success guidance"
 The validation found `exitCode: 1` in the engine JSON while wrapper reports `success: true`. This confuses evaluators.
 
 **Files:**
-- Modify: `skills/login-enterprise-script-runner/SKILL.md`
+- Modify: `skills/login-enterprise-run-script/SKILL.md`
 
 **Interfaces:**
 - Consumes: nothing
@@ -147,7 +147,7 @@ are the authoritative verdicts. Do not interpret `exitCode: 1` as a failure.
 - [ ] **Step 2: Commit**
 
 ```bash
-git add skills/login-enterprise-script-runner/SKILL.md
+git add skills/login-enterprise-run-script/SKILL.md
 git commit -m "docs: clarify engine exitCode vs wrapper success semantics"
 ```
 
@@ -158,8 +158,8 @@ git commit -m "docs: clarify engine exitCode vs wrapper success semantics"
 Timer names are case-normalized in CSV output: `Load_Example` becomes `load_example`.
 
 **Files:**
-- Modify: `skills/login-enterprise-script-writer/SKILL.md`
-- Modify: `skills/login-enterprise-script-runner/SKILL.md`
+- Modify: `skills/login-enterprise-write-script/SKILL.md`
+- Modify: `skills/login-enterprise-run-script/SKILL.md`
 
 **Interfaces:**
 - Consumes: nothing
@@ -189,7 +189,7 @@ case-insensitively when correlating script timers with CSV output.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add skills/login-enterprise-script-writer/ skills/login-enterprise-script-runner/
+git add skills/login-enterprise-write-script/ skills/login-enterprise-run-script/
 git commit -m "docs: document timer name normalization to lowercase in CSV output"
 ```
 
@@ -200,7 +200,7 @@ git commit -m "docs: document timer name normalization to lowercase in CSV outpu
 The validation found the mapper can attach to a similarly named app (Notepad++ when testing Notepad) and close it.
 
 **Files:**
-- Modify: `skills/login-enterprise-app-mapper/SKILL.md`
+- Modify: `skills/login-enterprise-map-application/SKILL.md`
 
 **Interfaces:**
 - Consumes: nothing
@@ -223,7 +223,7 @@ Read the file. Find the "Absolute rules" or prerequisites section. Add:
 - [ ] **Step 2: Commit**
 
 ```bash
-git add skills/login-enterprise-app-mapper/SKILL.md
+git add skills/login-enterprise-map-application/SKILL.md
 git commit -m "docs: add safety warning about closing similar apps before mapping"
 ```
 

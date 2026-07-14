@@ -120,13 +120,13 @@ function Find-Python {
 }
 
 function Find-ValidatorDll {
-    $path = Join-Path $SkillsRoot 'skills\login-enterprise-script-validator\references\validator\bin\Release\net8.0\le-validate.dll'
+    $path = Join-Path $SkillsRoot 'skills\login-enterprise-validate-script\references\validator\bin\Release\net8.0\le-validate.dll'
     if (Test-Path $path) { return (Resolve-Path $path).Path }
     return $null
 }
 
 function Find-RunnerScript {
-    $path = Join-Path $SkillsRoot 'skills\login-enterprise-script-runner\references\runner\run.ps1'
+    $path = Join-Path $SkillsRoot 'skills\login-enterprise-run-script\references\runner\run.ps1'
     if (Test-Path $path) { return (Resolve-Path $path).Path }
     return $null
 }
@@ -240,7 +240,7 @@ $skills['script-runner'] = @{
 $mapDNeeds = [System.Collections.Generic.List[string]]::new()
 if (-not $onWindows)     { $mapDNeeds.Add('Windows') }
 if (-not $engineDir)     { $mapDNeeds.Add('standalone engine (EngineDir)') }
-if (-not $runnerScript)  { $mapDNeeds.Add('login-enterprise-script-runner skill') }
+if (-not $runnerScript)  { $mapDNeeds.Add('login-enterprise-run-script skill') }
 $skills['app-mapper-desktop'] = @{
     ready = ($mapDNeeds.Count -eq 0); needs = $mapDNeeds; prereqs = 'Windows + engine + runner'
 }

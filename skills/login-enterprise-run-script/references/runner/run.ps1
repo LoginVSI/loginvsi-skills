@@ -72,14 +72,14 @@ $exe = Join-Path $EngineDir 'LoginEnterprise.Engine.Standalone.exe'
 if (-not (Test-Path $exe)) { Fail "Engine not found: $exe (is -EngineDir the folder with the standalone exe?)" }
 
 if (-not $ValidatorDll) {
-    $ValidatorDll = Join-Path $PSScriptRoot '..\..\..\login-enterprise-script-validator\references\validator\bin\Release\net8.0\le-validate.dll'
+    $ValidatorDll = Join-Path $PSScriptRoot '..\..\..\login-enterprise-validate-script\references\validator\bin\Release\net8.0\le-validate.dll'
 }
 
 # --- 1. validate (default gate) -------------------------------------------------------------
 if (-not $SkipValidation) {
     if (-not (Test-Path $ValidatorDll)) {
         Fail ("Validator not built: $ValidatorDll`n" +
-              "Build it once via the login-enterprise-script-validator skill's install.ps1, " +
+              "Build it once via the login-enterprise-validate-script skill's install.ps1, " +
               "or pass -ValidatorDll, or re-run with -SkipValidation.")
     }
     if (-not $EditorDir) { Fail "Validation requires -EditorDir (the deployed ScriptEditor root). Or use -SkipValidation." }

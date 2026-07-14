@@ -1,5 +1,5 @@
 ---
-name: login-enterprise-app-mapper
+name: login-enterprise-map-application
 description: >-
   Map a desktop application's UI controls or a web page's interactive elements
   by walking through a workflow step by step. For each action, tries multiple
@@ -10,7 +10,7 @@ description: >-
 license: Apache-2.0
 compatibility: >-
   Desktop mapping requires Windows, Login Enterprise Engine (standalone), and the
-  login-enterprise-script-runner skill. Web mapping requires Python 3 and Playwright.
+  login-enterprise-run-script skill. Web mapping requires Python 3 and Playwright.
 metadata:
   author: loginvsi
   version: "2.0"
@@ -22,17 +22,17 @@ Walk through a user-described workflow step by step, probing each action's
 target control against the live UI using multiple finder strategies. Produces
 an `app-map.json` with verified control identifiers and known fallbacks.
 Maps accumulate across workflows — run the mapper once per workflow, then
-pass the map to `login-enterprise-script-writer` for reliable scripts.
+pass the map to `login-enterprise-write-script` for reliable scripts.
 
 This skill **discovers** identifiers. It does not generate user scripts
-(use `login-enterprise-script-writer`) and does not run user scripts
-(use `login-enterprise-script-runner`).
+(use `login-enterprise-write-script`) and does not run user scripts
+(use `login-enterprise-run-script`).
 
 ## When to activate
 
 Activate when the user says "map", "discover", "identify UI elements", "create an
 app map", or "find controls" for a desktop application or web page. Also activate
-when `login-enterprise-script-writer` reports it cannot find a control and the user
+when `login-enterprise-write-script` reports it cannot find a control and the user
 wants to supply verified identifiers.
 
 ## Safety
@@ -66,7 +66,7 @@ wants to supply verified identifiers.
 
 ### Desktop mapping
 - **Windows** — the engine is .NET Framework 4.8.
-- `login-enterprise-script-runner` skill installed at the expected sibling path.
+- `login-enterprise-run-script` skill installed at the expected sibling path.
 - A ScriptEditor deployment with the standalone engine (`EngineDir`).
 
 The mapper checks for the engine in this order:
@@ -161,7 +161,7 @@ Key points:
 
 ### 5. Run the probe
 
-Invoke `login-enterprise-script-runner` with `-SkipValidation`:
+Invoke `login-enterprise-run-script` with `-SkipValidation`:
 ```
 run.ps1 -Script "probe.cs" -EngineDir "C:\ScriptEditor\engine" -SkipValidation
 ```
@@ -391,7 +391,7 @@ attempt. Unusual controls may need one refinement pass.
 
 ### Script-writer
 
-When generating a script, `login-enterprise-script-writer` checks for an app
+When generating a script, `login-enterprise-write-script` checks for an app
 map (project-local first, then global). If found, it uses `preferredFinder`
 params directly and generates fallback chains:
 
@@ -408,7 +408,7 @@ if (fileMenu == null)
 
 ### Script-runner
 
-The mapper uses `login-enterprise-script-runner` to execute probe scripts.
+The mapper uses `login-enterprise-run-script` to execute probe scripts.
 Same sibling path dependency as the runner skill.
 
 ## Common mistakes

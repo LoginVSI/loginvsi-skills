@@ -6,7 +6,7 @@ labels: bug
 
 ## Skill affected
 
-Which skill has the issue? (e.g., `login-enterprise-script-writer`)
+Which skill has the issue? (e.g., `login-enterprise-write-script`)
 
 ## Description
 

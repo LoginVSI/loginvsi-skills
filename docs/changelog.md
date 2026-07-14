@@ -6,10 +6,10 @@ Initial public release.
 
 ### Skills
 
-- **login-enterprise-script-writer** (v1.0) — Generate `.cs` automation scripts from natural language
-- **login-enterprise-script-validator** (v1.0) — Validate scripts against 8 Roslyn analyzer rules
-- **login-enterprise-script-runner** (v1.0) — Execute scripts on the standalone Login Enterprise engine
-- **login-enterprise-app-mapper** (v2.0) — Map desktop UI trees or web DOMs with workflow-based multi-finder probes
+- **login-enterprise-write-script** (v1.0) — Generate `.cs` automation scripts from natural language
+- **login-enterprise-validate-script** (v1.0) — Validate scripts against 8 Roslyn analyzer rules
+- **login-enterprise-run-script** (v1.0) — Execute scripts on the standalone Login Enterprise engine
+- **login-enterprise-map-application** (v2.0) — Map desktop UI trees or web DOMs with workflow-based multi-finder probes
 - **login-enterprise-transcribe-video** (v1.0) — Convert screen recordings into step-by-step documentation
 
 ### Infrastructure

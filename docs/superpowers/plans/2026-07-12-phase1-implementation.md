@@ -52,8 +52,8 @@ cd loginvsi-skills
 - [ ] **Step 3: Create directory scaffold**
 
 ```bash
-mkdir -p skills/login-enterprise-script-writer/{references/examples,assets}
-mkdir -p skills/login-enterprise-script-validator/{scripts,references}
+mkdir -p skills/login-enterprise-write-script/{references/examples,assets}
+mkdir -p skills/login-enterprise-validate-script/{scripts,references}
 mkdir -p install/agent-configs
 mkdir -p docs
 mkdir -p .github/workflows
@@ -82,13 +82,13 @@ git commit -m "chore: scaffold repo structure and move PRD to docs"
 ### Task 2: Port script-writer Skill Content
 
 **Files:**
-- Create: `skills/login-enterprise-script-writer/SKILL.md`
-- Create: `skills/login-enterprise-script-writer/references/api-reference.md`
-- Create: `skills/login-enterprise-script-writer/references/patterns-desktop.md`
-- Create: `skills/login-enterprise-script-writer/references/patterns-web.md`
-- Create: `skills/login-enterprise-script-writer/references/examples/notepad-basic.cs`
-- Create: `skills/login-enterprise-script-writer/references/examples/web-login.cs`
-- Create: `skills/login-enterprise-script-writer/assets/script-template.cs`
+- Create: `skills/login-enterprise-write-script/SKILL.md`
+- Create: `skills/login-enterprise-write-script/references/api-reference.md`
+- Create: `skills/login-enterprise-write-script/references/patterns-desktop.md`
+- Create: `skills/login-enterprise-write-script/references/patterns-web.md`
+- Create: `skills/login-enterprise-write-script/references/examples/notepad-basic.cs`
+- Create: `skills/login-enterprise-write-script/references/examples/web-login.cs`
+- Create: `skills/login-enterprise-write-script/assets/script-template.cs`
 
 **Interfaces:**
 - Consumes: internal repo's script-writer skill content
@@ -96,11 +96,11 @@ git commit -m "chore: scaffold repo structure and move PRD to docs"
 
 - [ ] **Step 1: Create SKILL.md with frontmatter**
 
-Create `skills/login-enterprise-script-writer/SKILL.md` with this frontmatter:
+Create `skills/login-enterprise-write-script/SKILL.md` with this frontmatter:
 
 ```yaml
 ---
-name: login-enterprise-script-writer
+name: login-enterprise-write-script
 description: >-
   Generate a complete Login Enterprise .cs automation script from natural-language
   instructions. Supports Desktop (UIAutomation), Playwright web, and legacy CSS/Selenium
@@ -152,7 +152,7 @@ Port `assets/script-template.cs` from the internal repo — a minimal blank temp
 - [ ] **Step 5: Validate the skill**
 
 ```bash
-npx skills-ref validate skills/login-enterprise-script-writer
+npx skills-ref validate skills/login-enterprise-write-script
 ```
 
 Expected: validation passes with no errors. If it fails, fix the reported issues (name mismatch, missing fields, description too long, body over 500 lines).
@@ -160,8 +160,8 @@ Expected: validation passes with no errors. If it fails, fix the reported issues
 - [ ] **Step 6: Commit**
 
 ```bash
-git add skills/login-enterprise-script-writer/
-git commit -m "feat: add login-enterprise-script-writer skill"
+git add skills/login-enterprise-write-script/
+git commit -m "feat: add login-enterprise-write-script skill"
 ```
 
 ---
@@ -441,16 +441,16 @@ Skills are symlinked to `~/.claude/skills/` for user-wide access, or `.claude/sk
 
 ```bash
 mkdir -p ~/.claude/skills
-ln -s "$(pwd)/skills/login-enterprise-script-writer" ~/.claude/skills/
-ln -s "$(pwd)/skills/login-enterprise-script-validator" ~/.claude/skills/
+ln -s "$(pwd)/skills/login-enterprise-write-script" ~/.claude/skills/
+ln -s "$(pwd)/skills/login-enterprise-validate-script" ~/.claude/skills/
 ```
 
 ### Windows (PowerShell as Administrator)
 
 ```powershell
 New-Item -ItemType Directory -Path "$HOME\.claude\skills" -Force
-New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-script-writer" -Target "$PWD\skills\login-enterprise-script-writer"
-New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-script-validator" -Target "$PWD\skills\login-enterprise-script-validator"
+New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-write-script" -Target "$PWD\skills\login-enterprise-write-script"
+New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-validate-script" -Target "$PWD\skills\login-enterprise-validate-script"
 ```
 
 ## Verification
@@ -481,16 +481,16 @@ Skills are symlinked to `.agent-skills/` in your project directory.
 
 ```bash
 mkdir -p .agent-skills
-ln -s "$(pwd)/skills/login-enterprise-script-writer" .agent-skills/
-ln -s "$(pwd)/skills/login-enterprise-script-validator" .agent-skills/
+ln -s "$(pwd)/skills/login-enterprise-write-script" .agent-skills/
+ln -s "$(pwd)/skills/login-enterprise-validate-script" .agent-skills/
 ```
 
 ### Windows (PowerShell as Administrator)
 
 ```powershell
 New-Item -ItemType Directory -Path ".agent-skills" -Force
-New-Item -ItemType SymbolicLink -Path ".agent-skills\login-enterprise-script-writer" -Target "$PWD\skills\login-enterprise-script-writer"
-New-Item -ItemType SymbolicLink -Path ".agent-skills\login-enterprise-script-validator" -Target "$PWD\skills\login-enterprise-script-validator"
+New-Item -ItemType SymbolicLink -Path ".agent-skills\login-enterprise-write-script" -Target "$PWD\skills\login-enterprise-write-script"
+New-Item -ItemType SymbolicLink -Path ".agent-skills\login-enterprise-validate-script" -Target "$PWD\skills\login-enterprise-validate-script"
 ```
 
 ## Verification
@@ -508,11 +508,11 @@ cd loginvsi-skills
 ls -la ~/.claude/skills/
 ```
 
-Expected: symlinks for `login-enterprise-script-writer` pointing to the repo's `skills/` directory.
+Expected: symlinks for `login-enterprise-write-script` pointing to the repo's `skills/` directory.
 
 ```bash
 # Cleanup
-rm -rf ~/.claude/skills/login-enterprise-script-writer
+rm -rf ~/.claude/skills/login-enterprise-write-script
 ```
 
 - [ ] **Step 6: Test install.ps1 on Windows**
@@ -525,11 +525,11 @@ cd loginvsi-skills
 Get-ChildItem "$HOME\.claude\skills\"
 ```
 
-Expected: symlink for `login-enterprise-script-writer` pointing to the repo's `skills/` directory.
+Expected: symlink for `login-enterprise-write-script` pointing to the repo's `skills/` directory.
 
 ```powershell
 # Cleanup
-Remove-Item "$HOME\.claude\skills\login-enterprise-script-writer" -Force
+Remove-Item "$HOME\.claude\skills\login-enterprise-write-script" -Force
 ```
 
 - [ ] **Step 7: Commit**
@@ -631,7 +631,7 @@ for dir in skills/login-enterprise-*/; do
 done
 ```
 
-Expected: `skills/login-enterprise-script-writer` passes validation.
+Expected: `skills/login-enterprise-write-script` passes validation.
 
 - [ ] **Step 3: Commit**
 
@@ -726,7 +726,7 @@ git commit -m "docs: update README, CONTRIBUTING, and CLAUDE.md for Phase 1 Slic
 - [ ] **Step 1: Run skill validation**
 
 ```bash
-npx skills-ref validate skills/login-enterprise-script-writer
+npx skills-ref validate skills/login-enterprise-write-script
 ```
 
 Expected: passes with no errors.
@@ -738,14 +738,14 @@ Expected: passes with no errors.
 Get-ChildItem "$HOME\.claude\skills\" | Where-Object Name -like 'login-enterprise-*'
 ```
 
-Expected: `login-enterprise-script-writer` symlink present.
+Expected: `login-enterprise-write-script` symlink present.
 
 - [ ] **Step 3: Test with Claude Code**
 
 Open Claude Code in a project directory and ask:
 > "What Login Enterprise skills are available?"
 
-Expected: Claude Code lists `login-enterprise-script-writer` and describes its purpose.
+Expected: Claude Code lists `login-enterprise-write-script` and describes its purpose.
 
 Then ask:
 > "Write a Login Enterprise script that opens Notepad, types hello world, and saves the file"
@@ -759,7 +759,7 @@ Expected: Claude Code activates the script-writer skill and produces a valid `.c
 ls -la .agent-skills/
 ```
 
-Expected: `login-enterprise-script-writer` symlink present.
+Expected: `login-enterprise-write-script` symlink present.
 
 - [ ] **Step 5: Test with Codex**
 
@@ -787,9 +787,9 @@ git commit -m "fix: address Slice 1 verification issues"
 ### Task 7: Port script-validator Skill Content
 
 **Files:**
-- Create: `skills/login-enterprise-script-validator/SKILL.md`
-- Create: `skills/login-enterprise-script-validator/scripts/validate.ps1`
-- Create: `skills/login-enterprise-script-validator/references/analyzer-rules.md`
+- Create: `skills/login-enterprise-validate-script/SKILL.md`
+- Create: `skills/login-enterprise-validate-script/scripts/validate.ps1`
+- Create: `skills/login-enterprise-validate-script/references/analyzer-rules.md`
 
 **Interfaces:**
 - Consumes: internal repo's script-validator skill content
@@ -797,11 +797,11 @@ git commit -m "fix: address Slice 1 verification issues"
 
 - [ ] **Step 1: Create SKILL.md with frontmatter**
 
-Create `skills/login-enterprise-script-validator/SKILL.md` with this frontmatter:
+Create `skills/login-enterprise-validate-script/SKILL.md` with this frontmatter:
 
 ```yaml
 ---
-name: login-enterprise-script-validator
+name: login-enterprise-validate-script
 description: >-
   Validate a Login Enterprise .cs automation script against the 8 Roslyn analyzer
   rules. Checks for correct timer usage, prohibited API calls, proper ScriptBase
@@ -830,7 +830,7 @@ Verify the body is under 500 lines.
 
 - [ ] **Step 2: Create validate.ps1**
 
-Create `skills/login-enterprise-script-validator/scripts/validate.ps1`:
+Create `skills/login-enterprise-validate-script/scripts/validate.ps1`:
 
 ```powershell
 #Requires -Version 5.1
@@ -948,7 +948,7 @@ Remove any internal/proprietary references.
 - [ ] **Step 4: Validate the skill**
 
 ```bash
-npx skills-ref validate skills/login-enterprise-script-validator
+npx skills-ref validate skills/login-enterprise-validate-script
 ```
 
 Expected: validation passes with no errors.
@@ -956,8 +956,8 @@ Expected: validation passes with no errors.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add skills/login-enterprise-script-validator/
-git commit -m "feat: add login-enterprise-script-validator skill"
+git add skills/login-enterprise-validate-script/
+git commit -m "feat: add login-enterprise-validate-script skill"
 ```
 
 ---
@@ -981,7 +981,7 @@ The install scripts already dynamically discover all `login-enterprise-*` direct
 Get-ChildItem "$HOME\.claude\skills\" | Where-Object Name -like 'login-enterprise-*'
 ```
 
-Expected: both `login-enterprise-script-writer` and `login-enterprise-script-validator` symlinks present.
+Expected: both `login-enterprise-write-script` and `login-enterprise-validate-script` symlinks present.
 
 - [ ] **Step 2: Test CI validates both skills**
 
@@ -1075,7 +1075,7 @@ Expected: both skills symlinked to `~/.claude/skills/`.
 Open Claude Code and ask:
 > "What Login Enterprise skills are available?"
 
-Expected: both `login-enterprise-script-writer` and `login-enterprise-script-validator` listed.
+Expected: both `login-enterprise-write-script` and `login-enterprise-validate-script` listed.
 
 - [ ] **Step 4: Test script-writer with Claude Code**
 

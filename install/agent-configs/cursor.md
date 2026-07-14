@@ -18,10 +18,10 @@ Skills are symlinked to `.cursor/skills/` in your project directory.
 
 ```bash
 mkdir -p .cursor/skills
-ln -s "$(pwd)/skills/login-enterprise-script-writer" .cursor/skills/
-ln -s "$(pwd)/skills/login-enterprise-script-validator" .cursor/skills/
-ln -s "$(pwd)/skills/login-enterprise-script-runner" .cursor/skills/
-ln -s "$(pwd)/skills/login-enterprise-app-mapper" .cursor/skills/
+ln -s "$(pwd)/skills/login-enterprise-write-script" .cursor/skills/
+ln -s "$(pwd)/skills/login-enterprise-validate-script" .cursor/skills/
+ln -s "$(pwd)/skills/login-enterprise-run-script" .cursor/skills/
+ln -s "$(pwd)/skills/login-enterprise-map-application" .cursor/skills/
 ln -s "$(pwd)/skills/login-enterprise-transcribe-video" .cursor/skills/
 ```
 
@@ -29,10 +29,10 @@ ln -s "$(pwd)/skills/login-enterprise-transcribe-video" .cursor/skills/
 
 ```powershell
 New-Item -ItemType Directory -Path ".cursor\skills" -Force
-New-Item -ItemType SymbolicLink -Path ".cursor\skills\login-enterprise-script-writer" -Target "$PWD\skills\login-enterprise-script-writer"
-New-Item -ItemType SymbolicLink -Path ".cursor\skills\login-enterprise-script-validator" -Target "$PWD\skills\login-enterprise-script-validator"
-New-Item -ItemType SymbolicLink -Path ".cursor\skills\login-enterprise-script-runner" -Target "$PWD\skills\login-enterprise-script-runner"
-New-Item -ItemType SymbolicLink -Path ".cursor\skills\login-enterprise-app-mapper" -Target "$PWD\skills\login-enterprise-app-mapper"
+New-Item -ItemType SymbolicLink -Path ".cursor\skills\login-enterprise-write-script" -Target "$PWD\skills\login-enterprise-write-script"
+New-Item -ItemType SymbolicLink -Path ".cursor\skills\login-enterprise-validate-script" -Target "$PWD\skills\login-enterprise-validate-script"
+New-Item -ItemType SymbolicLink -Path ".cursor\skills\login-enterprise-run-script" -Target "$PWD\skills\login-enterprise-run-script"
+New-Item -ItemType SymbolicLink -Path ".cursor\skills\login-enterprise-map-application" -Target "$PWD\skills\login-enterprise-map-application"
 New-Item -ItemType SymbolicLink -Path ".cursor\skills\login-enterprise-transcribe-video" -Target "$PWD\skills\login-enterprise-transcribe-video"
 ```
 

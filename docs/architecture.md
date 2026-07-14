@@ -32,7 +32,7 @@ by app-mapper to use accurate control identifiers.
 **script-validator**: Validate a script against Login Enterprise's 8 Roslyn analyzer rules.
 Requires Windows, .NET 8 SDK, and ScriptEditor installed at
 `C:\Program Files\Login VSI\ScriptEditor\`. Uses a C# project under
-`skills/login-enterprise-script-validator/references/validator/` with its own `install.ps1`
+`skills/login-enterprise-validate-script/references/validator/` with its own `install.ps1`
 to build the validation tooling (`le-validate.dll`) on first use.
 
 **script-runner**: Execute a validated `.cs` script on the Login Enterprise standalone engine

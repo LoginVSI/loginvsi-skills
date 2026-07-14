@@ -27,10 +27,10 @@ Any agent implementing the [agentskills.io specification](https://agentskills.io
 
 | Skill | Purpose | Status |
 |-------|---------|--------|
-| `login-enterprise-script-writer` | Generate a `.cs` automation script from natural-language instructions | Available |
-| `login-enterprise-script-validator` | Validate scripts against Login Enterprise's 8 Roslyn analyzer rules | Available |
-| `login-enterprise-script-runner` | Execute a script on the standalone engine and report results | Available |
-| `login-enterprise-app-mapper` | Map a desktop app's UI tree or web page DOM into `app-map.json` | Available |
+| `login-enterprise-write-script` | Generate a `.cs` automation script from natural-language instructions | Available |
+| `login-enterprise-validate-script` | Validate scripts against Login Enterprise's 8 Roslyn analyzer rules | Available |
+| `login-enterprise-run-script` | Execute a script on the standalone engine and report results | Available |
+| `login-enterprise-map-application` | Map a desktop app's UI tree or web page DOM into `app-map.json` | Available |
 | `login-enterprise-transcribe-video` | Convert screen recordings into step-by-step documentation | Available |
 
 ## Quick Start
@@ -89,19 +89,19 @@ Run without arguments for interactive selection.
 
 ```bash
 # User-wide (all projects)
-ln -s "$(pwd)/skills/login-enterprise-script-writer" ~/.claude/skills/
-ln -s "$(pwd)/skills/login-enterprise-script-validator" ~/.claude/skills/
-ln -s "$(pwd)/skills/login-enterprise-script-runner" ~/.claude/skills/
-ln -s "$(pwd)/skills/login-enterprise-app-mapper" ~/.claude/skills/
+ln -s "$(pwd)/skills/login-enterprise-write-script" ~/.claude/skills/
+ln -s "$(pwd)/skills/login-enterprise-validate-script" ~/.claude/skills/
+ln -s "$(pwd)/skills/login-enterprise-run-script" ~/.claude/skills/
+ln -s "$(pwd)/skills/login-enterprise-map-application" ~/.claude/skills/
 ln -s "$(pwd)/skills/login-enterprise-transcribe-video" ~/.claude/skills/
 ```
 
 ```powershell
 # Windows (run as Administrator for symlinks)
-New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-script-writer" -Target "$PWD\skills\login-enterprise-script-writer"
-New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-script-validator" -Target "$PWD\skills\login-enterprise-script-validator"
-New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-script-runner" -Target "$PWD\skills\login-enterprise-script-runner"
-New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-app-mapper" -Target "$PWD\skills\login-enterprise-app-mapper"
+New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-write-script" -Target "$PWD\skills\login-enterprise-write-script"
+New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-validate-script" -Target "$PWD\skills\login-enterprise-validate-script"
+New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-run-script" -Target "$PWD\skills\login-enterprise-run-script"
+New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-map-application" -Target "$PWD\skills\login-enterprise-map-application"
 New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-transcribe-video" -Target "$PWD\skills\login-enterprise-transcribe-video"
 ```
 
@@ -113,10 +113,10 @@ New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\login-enterprise-tra
 ```bash
 # Project-level
 mkdir -p .agent-skills
-ln -s "$(pwd)/skills/login-enterprise-script-writer" .agent-skills/
-ln -s "$(pwd)/skills/login-enterprise-script-validator" .agent-skills/
-ln -s "$(pwd)/skills/login-enterprise-script-runner" .agent-skills/
-ln -s "$(pwd)/skills/login-enterprise-app-mapper" .agent-skills/
+ln -s "$(pwd)/skills/login-enterprise-write-script" .agent-skills/
+ln -s "$(pwd)/skills/login-enterprise-validate-script" .agent-skills/
+ln -s "$(pwd)/skills/login-enterprise-run-script" .agent-skills/
+ln -s "$(pwd)/skills/login-enterprise-map-application" .agent-skills/
 ln -s "$(pwd)/skills/login-enterprise-transcribe-video" .agent-skills/
 ```
 
@@ -127,19 +127,19 @@ ln -s "$(pwd)/skills/login-enterprise-transcribe-video" .agent-skills/
 
 ```bash
 # User-wide (all projects)
-ln -s "$(pwd)/skills/login-enterprise-script-writer" ~/.cursor/skills/
-ln -s "$(pwd)/skills/login-enterprise-script-validator" ~/.cursor/skills/
-ln -s "$(pwd)/skills/login-enterprise-script-runner" ~/.cursor/skills/
-ln -s "$(pwd)/skills/login-enterprise-app-mapper" ~/.cursor/skills/
+ln -s "$(pwd)/skills/login-enterprise-write-script" ~/.cursor/skills/
+ln -s "$(pwd)/skills/login-enterprise-validate-script" ~/.cursor/skills/
+ln -s "$(pwd)/skills/login-enterprise-run-script" ~/.cursor/skills/
+ln -s "$(pwd)/skills/login-enterprise-map-application" ~/.cursor/skills/
 ln -s "$(pwd)/skills/login-enterprise-transcribe-video" ~/.cursor/skills/
 ```
 
 ```powershell
 # Windows (run as Administrator for symlinks)
-New-Item -ItemType SymbolicLink -Path "$HOME\.cursor\skills\login-enterprise-script-writer" -Target "$PWD\skills\login-enterprise-script-writer"
-New-Item -ItemType SymbolicLink -Path "$HOME\.cursor\skills\login-enterprise-script-validator" -Target "$PWD\skills\login-enterprise-script-validator"
-New-Item -ItemType SymbolicLink -Path "$HOME\.cursor\skills\login-enterprise-script-runner" -Target "$PWD\skills\login-enterprise-script-runner"
-New-Item -ItemType SymbolicLink -Path "$HOME\.cursor\skills\login-enterprise-app-mapper" -Target "$PWD\skills\login-enterprise-app-mapper"
+New-Item -ItemType SymbolicLink -Path "$HOME\.cursor\skills\login-enterprise-write-script" -Target "$PWD\skills\login-enterprise-write-script"
+New-Item -ItemType SymbolicLink -Path "$HOME\.cursor\skills\login-enterprise-validate-script" -Target "$PWD\skills\login-enterprise-validate-script"
+New-Item -ItemType SymbolicLink -Path "$HOME\.cursor\skills\login-enterprise-run-script" -Target "$PWD\skills\login-enterprise-run-script"
+New-Item -ItemType SymbolicLink -Path "$HOME\.cursor\skills\login-enterprise-map-application" -Target "$PWD\skills\login-enterprise-map-application"
 New-Item -ItemType SymbolicLink -Path "$HOME\.cursor\skills\login-enterprise-transcribe-video" -Target "$PWD\skills\login-enterprise-transcribe-video"
 ```
 
@@ -152,19 +152,19 @@ See [install/agent-configs/cursor.md](install/agent-configs/cursor.md) for addit
 
 ```bash
 # User-wide (all projects)
-ln -s "$(pwd)/skills/login-enterprise-script-writer" ~/.gemini/skills/
-ln -s "$(pwd)/skills/login-enterprise-script-validator" ~/.gemini/skills/
-ln -s "$(pwd)/skills/login-enterprise-script-runner" ~/.gemini/skills/
-ln -s "$(pwd)/skills/login-enterprise-app-mapper" ~/.gemini/skills/
+ln -s "$(pwd)/skills/login-enterprise-write-script" ~/.gemini/skills/
+ln -s "$(pwd)/skills/login-enterprise-validate-script" ~/.gemini/skills/
+ln -s "$(pwd)/skills/login-enterprise-run-script" ~/.gemini/skills/
+ln -s "$(pwd)/skills/login-enterprise-map-application" ~/.gemini/skills/
 ln -s "$(pwd)/skills/login-enterprise-transcribe-video" ~/.gemini/skills/
 ```
 
 ```powershell
 # Windows (run as Administrator for symlinks)
-New-Item -ItemType SymbolicLink -Path "$HOME\.gemini\skills\login-enterprise-script-writer" -Target "$PWD\skills\login-enterprise-script-writer"
-New-Item -ItemType SymbolicLink -Path "$HOME\.gemini\skills\login-enterprise-script-validator" -Target "$PWD\skills\login-enterprise-script-validator"
-New-Item -ItemType SymbolicLink -Path "$HOME\.gemini\skills\login-enterprise-script-runner" -Target "$PWD\skills\login-enterprise-script-runner"
-New-Item -ItemType SymbolicLink -Path "$HOME\.gemini\skills\login-enterprise-app-mapper" -Target "$PWD\skills\login-enterprise-app-mapper"
+New-Item -ItemType SymbolicLink -Path "$HOME\.gemini\skills\login-enterprise-write-script" -Target "$PWD\skills\login-enterprise-write-script"
+New-Item -ItemType SymbolicLink -Path "$HOME\.gemini\skills\login-enterprise-validate-script" -Target "$PWD\skills\login-enterprise-validate-script"
+New-Item -ItemType SymbolicLink -Path "$HOME\.gemini\skills\login-enterprise-run-script" -Target "$PWD\skills\login-enterprise-run-script"
+New-Item -ItemType SymbolicLink -Path "$HOME\.gemini\skills\login-enterprise-map-application" -Target "$PWD\skills\login-enterprise-map-application"
 New-Item -ItemType SymbolicLink -Path "$HOME\.gemini\skills\login-enterprise-transcribe-video" -Target "$PWD\skills\login-enterprise-transcribe-video"
 ```
 
@@ -190,7 +190,7 @@ This detects ScriptEditor, the standalone engine, .NET 8 SDK, Python 3, Playwrig
 
 ## Prerequisites
 
-`login-enterprise-script-writer` has no prerequisites — it works on any platform with no additional tools required.
+`login-enterprise-write-script` has no prerequisites — it works on any platform with no additional tools required.
 
 `login-enterprise-transcribe-video` requires Python 3 and ffmpeg (both must be on your `PATH`). It works on any platform.
 
@@ -199,7 +199,7 @@ This detects ScriptEditor, the standalone engine, .NET 8 SDK, Python 3, Playwrig
 > `py -m playwright install chromium`. Alternatively, disable the Microsoft Store
 > Python alias in Settings > Apps > Advanced app settings > App execution aliases.
 
-`login-enterprise-script-validator` requires a Windows environment with the Login Enterprise toolchain installed:
+`login-enterprise-validate-script` requires a Windows environment with the Login Enterprise toolchain installed:
 
 | Requirement | Skills that need it |
 |-------------|-------------------|

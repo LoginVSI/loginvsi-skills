@@ -1,10 +1,10 @@
 ---
-name: login-enterprise-script-runner
-description: Use when a user wants to run a Login Enterprise .cs script on the real standalone engine after validating it. Validates first by default (via login-enterprise-script-validator), then executes LoginEnterprise.Engine.Standalone.exe and reports the normalized result and timers. Windows only. Does not generate or fix scripts — use login-enterprise-script-writer / login-enterprise-script-validator for that.
+name: login-enterprise-run-script
+description: Use when a user wants to run a Login Enterprise .cs script on the real standalone engine after validating it. Validates first by default (via login-enterprise-validate-script), then executes LoginEnterprise.Engine.Standalone.exe and reports the normalized result and timers. Windows only. Does not generate or fix scripts — use login-enterprise-write-script / login-enterprise-validate-script for that.
 license: Apache-2.0
 compatibility: >-
   Requires Windows, Login Enterprise Engine (standalone), and the
-  login-enterprise-script-validator skill's le-validate.dll built locally.
+  login-enterprise-validate-script skill's le-validate.dll built locally.
 metadata:
   author: loginvsi
   version: "1.0"
@@ -14,8 +14,8 @@ metadata:
 
 Execute a Login Enterprise `.cs` script on the **real standalone engine**
 (`LoginEnterprise.Engine.Standalone.exe`), gated by validation. This skill **runs** scripts; it
-does not generate them (use `login-enterprise-script-writer`) and does not reimplement validation
-(it calls `login-enterprise-script-validator`).
+does not generate them (use `login-enterprise-write-script`) and does not reimplement validation
+(it calls `login-enterprise-validate-script`).
 
 ## Absolute rules
 
@@ -38,7 +38,7 @@ does not generate them (use `login-enterprise-script-writer`) and does not reimp
 - **Windows** (the engine is a .NET Framework 4.8 executable).
 - A ScriptEditor deployment containing `…\engine\LoginEnterprise.Engine.Standalone.exe` (`EngineDir`).
 - For the default validation gate: a **built** `le-validate.dll` from the
-  `login-enterprise-script-validator` skill (run its `install.ps1` once) and the deployed
+  `login-enterprise-validate-script` skill (run its `install.ps1` once) and the deployed
   ScriptEditor root (`EditorDir`).
 
 The runner checks for the engine in this order:

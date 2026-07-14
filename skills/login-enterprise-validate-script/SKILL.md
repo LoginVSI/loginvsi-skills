@@ -1,5 +1,5 @@
 ---
-name: login-enterprise-script-validator
+name: login-enterprise-validate-script
 description: >-
   Validate a Login Enterprise .cs automation script against the 8 Roslyn analyzer
   rules. Checks for correct timer usage, prohibited API calls, proper ScriptBase
@@ -20,7 +20,7 @@ Validate Login Enterprise `.cs` scripts against the **same Roslyn analyzer the S
 uses**, so a script is provably clean before it runs on the Engine.
 
 This skill **only validates** — it does not generate scripts. For script generation, use
-`login-enterprise-script-writer`.
+`login-enterprise-write-script`.
 
 ## When to activate
 
@@ -31,7 +31,7 @@ Use this skill when the user says things like:
 - "does this script pass the analyzer?"
 - "are there any timer errors in this script?"
 
-Do NOT activate this skill for script generation — use `login-enterprise-script-writer` for that.
+Do NOT activate this skill for script generation — use `login-enterprise-write-script` for that.
 
 ## Absolute rules
 

@@ -38,10 +38,10 @@ Login Enterprise automation scripts require deep knowledge of the `LoginPI.Engin
 | Skill name | Description |
 |------------|-------------|
 | `login-enterprise-create-test` | Orchestrate the full test workflow: environment check, app mapping, script writing, validation, and execution |
-| `login-enterprise-script-writer` | Generate a complete `.cs` automation script from natural-language instructions |
-| `login-enterprise-script-validator` | Validate a `.cs` script against the 8 Roslyn analyzer rules |
-| `login-enterprise-script-runner` | Execute a script on the standalone engine and report results |
-| `login-enterprise-app-mapper` | Map a desktop app's UI tree or a web page's DOM into an `app-map.json` |
+| `login-enterprise-write-script` | Generate a complete `.cs` automation script from natural-language instructions |
+| `login-enterprise-validate-script` | Validate a `.cs` script against the 8 Roslyn analyzer rules |
+| `login-enterprise-run-script` | Execute a script on the standalone engine and report results |
+| `login-enterprise-map-application` | Map a desktop app's UI tree or a web page's DOM into an `app-map.json` |
 | `login-enterprise-transcribe-video` | Convert a screen recording into step-by-step documentation with screenshots |
 
 ## Repository Structure
@@ -64,7 +64,7 @@ loginvsi-skills/
 │   │   │   └── workflow-guide.md
 │   │   └── assets/
 │   │       └── flow-diagram.md
-│   ├── login-enterprise-script-writer/
+│   ├── login-enterprise-write-script/
 │   │   ├── SKILL.md
 │   │   ├── references/
 │   │   │   ├── api-reference.md
@@ -75,21 +75,21 @@ loginvsi-skills/
 │   │   │       └── web-login.cs
 │   │   └── assets/
 │   │       └── script-template.cs
-│   ├── login-enterprise-script-validator/
+│   ├── login-enterprise-validate-script/
 │   │   ├── SKILL.md
 │   │   ├── scripts/
 │   │   │   └── validate.ps1
 │   │   └── references/
 │   │       ├── analyzer-rules.md
 │   │       └── install.ps1
-│   ├── login-enterprise-script-runner/
+│   ├── login-enterprise-run-script/
 │   │   ├── SKILL.md
 │   │   ├── scripts/
 │   │   │   └── run.ps1
 │   │   └── references/
 │   │       ├── engine-guide.md
 │   │       └── install.ps1
-│   ├── login-enterprise-app-mapper/
+│   ├── login-enterprise-map-application/
 │   │   ├── SKILL.md
 │   │   ├── scripts/
 │   │   │   ├── map.ps1

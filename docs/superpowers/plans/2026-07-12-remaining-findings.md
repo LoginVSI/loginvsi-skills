@@ -23,7 +23,7 @@
 The validation found confusion between `chrome`, `chromium`, and `edge` in `// BROWSER:` magic comments. Users don't know which value maps to which browser.
 
 **Files:**
-- Modify: `skills/login-enterprise-script-writer/references/skeletons.md`
+- Modify: `skills/login-enterprise-write-script/references/skeletons.md`
 
 **Interfaces:**
 - Consumes: nothing
@@ -31,7 +31,7 @@ The validation found confusion between `chrome`, `chromium`, and `edge` in `// B
 
 - [ ] **Step 1: Read skeletons.md and find the BROWSER magic comment section**
 
-Read `skills/login-enterprise-script-writer/references/skeletons.md`. Find where `// BROWSER:` is documented.
+Read `skills/login-enterprise-write-script/references/skeletons.md`. Find where `// BROWSER:` is documented.
 
 - [ ] **Step 2: Add a browser naming table**
 
@@ -55,7 +55,7 @@ bundled browser, ensure it is installed: `playwright install chromium`.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add skills/login-enterprise-script-writer/references/skeletons.md
+git add skills/login-enterprise-write-script/references/skeletons.md
 git commit -m "docs: add browser naming table to skeletons.md"
 ```
 
@@ -66,7 +66,7 @@ git commit -m "docs: add browser naming table to skeletons.md"
 The validation found that generated text assertions using `innerText` were brittle. Script-writer should guide agents toward more robust Playwright locator strategies.
 
 **Files:**
-- Modify: `skills/login-enterprise-script-writer/SKILL.md`
+- Modify: `skills/login-enterprise-write-script/SKILL.md`
 
 **Interfaces:**
 - Consumes: nothing
@@ -109,13 +109,13 @@ Keep it concise — this is guidance, not a reference doc.
 - [ ] **Step 3: Verify body is under 500 lines**
 
 ```bash
-awk '/^---$/{n++; next} n>=2' skills/login-enterprise-script-writer/SKILL.md | wc -l
+awk '/^---$/{n++; next} n>=2' skills/login-enterprise-write-script/SKILL.md | wc -l
 ```
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add skills/login-enterprise-script-writer/SKILL.md
+git add skills/login-enterprise-write-script/SKILL.md
 git commit -m "docs: add web locator best practices to script-writer"
 ```
 
@@ -225,7 +225,7 @@ git commit -m "fix: report ffmpeg stderr and per-frame extraction failures in ex
 The validation found `logPath: null` in runner output even when the engine printed a log path to stdout.
 
 **Files:**
-- Modify: `skills/login-enterprise-script-runner/references/runner/run.ps1`
+- Modify: `skills/login-enterprise-run-script/references/runner/run.ps1`
 
 **Interfaces:**
 - Consumes: nothing
@@ -233,7 +233,7 @@ The validation found `logPath: null` in runner output even when the engine print
 
 - [ ] **Step 1: Read run.ps1 and find the log path detection logic**
 
-Read `skills/login-enterprise-script-runner/references/runner/run.ps1`. Find where `logPath` is resolved — likely searching a temp directory for the engine log.
+Read `skills/login-enterprise-run-script/references/runner/run.ps1`. Find where `logPath` is resolved — likely searching a temp directory for the engine log.
 
 - [ ] **Step 2: Add stdout-based log path detection**
 
@@ -261,7 +261,7 @@ if (-not $logPath -and $logFromStdout) {
 - [ ] **Step 3: Commit**
 
 ```bash
-git add skills/login-enterprise-script-runner/references/runner/run.ps1
+git add skills/login-enterprise-run-script/references/runner/run.ps1
 git commit -m "fix: improve engine log path detection with stdout fallback"
 ```
 
