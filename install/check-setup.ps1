@@ -266,6 +266,49 @@ $skills['transcribe-video'] = @{
 $readyCount = ($skills.Values | Where-Object { $_.ready }).Count
 $totalCount = $skills.Count
 
+# --- detect installed agents ---------------------------------------------------------------
+
+# Each agent: name, project path, global path (or $null if N/A)
+$agentDefs = @(
+    @{ name = 'Claude Code';      project = '.claude/skills';      global = (Join-Path $HOME '.claude/skills') }
+    @{ name = 'OpenAI Codex';     project = '.agent-skills';       global = $null }
+    @{ name = 'Gemini CLI';       project = '.gemini/skills';      global = (Join-Path $HOME '.gemini/skills') }
+    @{ name = 'Cursor';           project = '.cursor/skills';      global = $null }
+    @{ name = 'GitHub Copilot';   project = '.github/skills';      global = $null }
+    @{ name = 'Windsurf';         project = '.windsurf/skills';    global = $null }
+    @{ name = 'Roo Code';         project = '.roo/skills';         global = $null }
+    @{ name = 'Junie';            project = '.junie/skills';       global = $null }
+    @{ name = 'Goose';            project = '.goose/skills';       global = (Join-Path $HOME '.agents/skills') }
+    @{ name = 'Antigravity';      project = '.agents/skills';      global = (Join-Path (Join-Path $HOME '.gemini') 'config/skills') }
+    @{ name = 'OpenCode';         project = '.opencode/skills';    global = (Join-Path (Join-Path $HOME '.config') 'opencode/skills') }
+    @{ name = 'Kilo Code';        project = '.kilo/skills';        global = (Join-Path $HOME '.kilo/skills') }
+    @{ name = 'Trae';             project = '.trae/skills';        global = (Join-Path $HOME '.trae/skills') }
+)
+
+# Check for at least one login-enterprise-* skill directory in a path
+function Test-SkillsInstalled {
+    param([string]$Path)
+    if (-not (Test-Path $Path)) { return $false }
+    $found = Get-ChildItem -Path $Path -Directory -Filter 'login-enterprise-*' -ErrorAction SilentlyContinue
+    return ($found.Count -gt 0)
+}
+
+$agentResults = [ordered]@{}
+foreach ($agent in $agentDefs) {
+    $projectPath = Join-Path (Get-Location) $agent.project
+    $projectInstalled = Test-SkillsInstalled $projectPath
+    $globalInstalled = if ($agent.global) { Test-SkillsInstalled $agent.global } else { $false }
+    $agentResults[$agent.name] = [ordered]@{
+        projectPath      = $agent.project
+        projectInstalled = $projectInstalled
+        globalPath       = $agent.global
+        globalInstalled  = $globalInstalled
+        installed        = ($projectInstalled -or $globalInstalled)
+    }
+}
+
+$installedAgentCount = ($agentResults.Values | Where-Object { $_.installed }).Count
+
 # --- JSON output ---------------------------------------------------------------------------
 
 $jsonSummary = [ordered]@{
@@ -281,6 +324,9 @@ $jsonSummary = [ordered]@{
     ffmpeg      = $ffmpegVersion
     readyCount  = $readyCount
     totalCount  = $totalCount
+    installedAgents = $installedAgentCount
+    totalAgents = $agentDefs.Count
+    agents      = $agentResults
     skills      = [ordered]@{}
 }
 foreach ($name in $skills.Keys) {
@@ -338,10 +384,31 @@ foreach ($name in $skills.Keys) {
 }
 
 Write-Host ""
+Write-Host " Agent installations:"
+
+foreach ($agentName in $agentResults.Keys) {
+    $a = $agentResults[$agentName]
+    if ($a.installed) {
+        $locations = @()
+        if ($a.projectInstalled) { $locations += "project" }
+        if ($a.globalInstalled)  { $locations += "global" }
+        $locStr = $locations -join ' + '
+        Write-Host ("   [{0}]   {1,-20} ({2})" -f 'installed', $agentName, $locStr) -ForegroundColor Green
+    } else {
+        Write-Host ("   [{0}]   {1}" -f '        ', $agentName) -ForegroundColor DarkGray
+    }
+}
+
+Write-Host ""
 if ($readyCount -eq $totalCount) {
     Write-Host " All $totalCount skills operational." -ForegroundColor Green
 } else {
     Write-Host " $readyCount of $totalCount skills ready." -ForegroundColor Yellow
+}
+if ($installedAgentCount -gt 0) {
+    Write-Host " $installedAgentCount of $($agentDefs.Count) agents have skills installed." -ForegroundColor Cyan
+} else {
+    Write-Host " No agents have skills installed yet. Run install.ps1 to get started." -ForegroundColor Yellow
 }
 Write-Host "==================================================================="
 Write-Host ""
