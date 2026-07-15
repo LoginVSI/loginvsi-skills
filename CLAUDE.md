@@ -14,7 +14,7 @@ Phases 1 and 2 are complete: the repo structure, install scripts, CI workflow, `
   - `login-enterprise-run-script/` — Available now
   - `login-enterprise-map-application/` — Available now
   - `login-enterprise-transcribe-video/` — Available now
-- `install/` — Install scripts for Claude Code and OpenAI Codex (`install.sh`, `install.ps1`)
+- `install/` — Install scripts for supported AI coding agents (`install.sh`, `install.ps1`)
 - `docs/PRD.md` — Full product requirements: goals, skill list, repo structure, agent compatibility matrix, success criteria, timeline
 - `docs/architecture.md` — How skills relate to each other
 - `README.md` — User-facing documentation: installation, usage, examples, prerequisites
@@ -45,7 +45,7 @@ Naming: `login-enterprise-<name>`, lowercase + hyphens only, 1-64 chars, must ma
 
 ## Supported Agents
 
-Claude Code, OpenAI Codex, Gemini CLI, and Cursor are the primary supported agents. GitHub Copilot, Windsurf, Roo Code, and Junie are planned for future slices.
+Claude Code, OpenAI Codex, Gemini CLI, Cursor, GitHub Copilot, Windsurf, Roo Code, Junie, Goose, Antigravity, OpenCode, Kilo Code, and Trae are the supported agents.
 
 ## Key Constraints
 
@@ -65,7 +65,7 @@ Claude Code, OpenAI Codex, Gemini CLI, and Cursor are the primary supported agen
 
 **5 skills available.** The following are in place:
 - Repo structure and CI workflow
-- Install scripts (`install.sh` / `install.ps1`) supporting `--claude`, `--codex`, `--gemini`, `--cursor`, `--all` (bash) and `-Agent Claude/Codex/Gemini/Cursor/All` (PowerShell)
+- Install scripts (`install.sh` / `install.ps1`) supporting 13 agents: Claude, Codex, Gemini, Cursor, Copilot, Windsurf, Roo, Junie, Goose, Antigravity, OpenCode, Kilo, Trae (plus `--all`)
 - `login-enterprise-write-script` skill
 - `login-enterprise-validate-script` skill (requires Windows, .NET 8 SDK, ScriptEditor at `C:\Program Files\Login VSI\ScriptEditor\`)
 - `login-enterprise-run-script` skill (requires Windows, Login Enterprise Engine standalone, and `le-validate.dll` built from `script-validator`'s `install.ps1`)

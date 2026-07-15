@@ -10,16 +10,21 @@ Built on the [Agent Skills specification](https://agentskills.io/specification).
 
 ## Supported Agents
 
-| Agent | Status |
-|-------|--------|
-| [Claude Code](https://claude.ai/code) | Supported |
-| [OpenAI Codex](https://developers.openai.com/codex) | Supported |
-| [Gemini CLI](https://geminicli.com) | Supported |
-| [Cursor](https://cursor.com/) | Supported |
-| [GitHub Copilot](https://github.com/features/copilot) | Planned |
-| [Windsurf](https://codeium.com/windsurf) | Planned |
-| [Roo Code](https://roocode.com) | Planned |
-| [Junie (JetBrains)](https://junie.jetbrains.com/) | Planned |
+| Agent | Deployment | Status |
+|-------|------------|--------|
+| [Claude Code](https://claude.ai/code) | Global or project | Supported |
+| [OpenAI Codex](https://developers.openai.com/codex) | Project | Supported |
+| [Gemini CLI](https://geminicli.com) | Project or global | Supported |
+| [Cursor](https://cursor.com/) | Project | Supported |
+| [GitHub Copilot](https://github.com/features/copilot) | Project | Supported |
+| [Windsurf](https://codeium.com/windsurf) | Project | Supported |
+| [Roo Code](https://roocode.com) | Project | Supported |
+| [Junie (JetBrains)](https://junie.jetbrains.com/) | Project | Supported |
+| [Goose](https://block.github.io/goose/) | Project or global | Supported |
+| [Antigravity](https://cloud.google.com/antigravity) | Project or global | Supported |
+| [OpenCode](https://opencode.ai/) | Project or global | Supported |
+| [Kilo Code](https://kilo.ai/) | Project or global | Supported |
+| [Trae](https://trae.ai/) | Project or global | Supported |
 
 Any agent implementing the [agentskills.io specification](https://agentskills.io/clients) will discover and use these skills automatically.
 
@@ -59,6 +64,33 @@ cd loginvsi-skills
 # Unix/macOS — install for Cursor
 ./install/install.sh --cursor
 
+# Unix/macOS — install for GitHub Copilot
+./install/install.sh --copilot
+
+# Unix/macOS — install for Windsurf
+./install/install.sh --windsurf
+
+# Unix/macOS — install for Roo Code
+./install/install.sh --roo
+
+# Unix/macOS — install for Junie
+./install/install.sh --junie
+
+# Unix/macOS — install for Goose
+./install/install.sh --goose
+
+# Unix/macOS — install for Antigravity
+./install/install.sh --antigravity
+
+# Unix/macOS — install for OpenCode
+./install/install.sh --opencode
+
+# Unix/macOS — install for Kilo Code
+./install/install.sh --kilo
+
+# Unix/macOS — install for Trae
+./install/install.sh --trae
+
 # Unix/macOS — install for all supported agents
 ./install/install.sh --all
 ```
@@ -75,6 +107,33 @@ cd loginvsi-skills
 
 # Windows (PowerShell) — install for Cursor
 .\install\install.ps1 -Agent Cursor
+
+# Windows (PowerShell) — install for GitHub Copilot
+.\install\install.ps1 -Agent Copilot
+
+# Windows (PowerShell) — install for Windsurf
+.\install\install.ps1 -Agent Windsurf
+
+# Windows (PowerShell) — install for Roo Code
+.\install\install.ps1 -Agent Roo
+
+# Windows (PowerShell) — install for Junie
+.\install\install.ps1 -Agent Junie
+
+# Windows (PowerShell) — install for Goose
+.\install\install.ps1 -Agent Goose
+
+# Windows (PowerShell) — install for Antigravity
+.\install\install.ps1 -Agent Antigravity
+
+# Windows (PowerShell) — install for OpenCode
+.\install\install.ps1 -Agent OpenCode
+
+# Windows (PowerShell) — install for Kilo Code
+.\install\install.ps1 -Agent Kilo
+
+# Windows (PowerShell) — install for Trae
+.\install\install.ps1 -Agent Trae
 
 # Windows (PowerShell) — install for all supported agents
 .\install\install.ps1 -Agent All
@@ -144,6 +203,249 @@ New-Item -ItemType SymbolicLink -Path "$HOME\.cursor\skills\login-enterprise-tra
 ```
 
 See [install/agent-configs/cursor.md](install/agent-configs/cursor.md) for additional setup details.
+
+</details>
+
+<details>
+<summary>GitHub Copilot</summary>
+
+```bash
+# Project-level
+mkdir -p .github/skills
+ln -s "$(pwd)/skills/login-enterprise-write-script" .github/skills/
+ln -s "$(pwd)/skills/login-enterprise-validate-script" .github/skills/
+ln -s "$(pwd)/skills/login-enterprise-run-script" .github/skills/
+ln -s "$(pwd)/skills/login-enterprise-map-application" .github/skills/
+ln -s "$(pwd)/skills/login-enterprise-transcribe-video" .github/skills/
+```
+
+```powershell
+# Windows (run as Administrator for symlinks)
+New-Item -ItemType Directory -Path ".github\skills" -Force
+New-Item -ItemType SymbolicLink -Path ".github\skills\login-enterprise-write-script" -Target "$PWD\skills\login-enterprise-write-script"
+New-Item -ItemType SymbolicLink -Path ".github\skills\login-enterprise-validate-script" -Target "$PWD\skills\login-enterprise-validate-script"
+New-Item -ItemType SymbolicLink -Path ".github\skills\login-enterprise-run-script" -Target "$PWD\skills\login-enterprise-run-script"
+New-Item -ItemType SymbolicLink -Path ".github\skills\login-enterprise-map-application" -Target "$PWD\skills\login-enterprise-map-application"
+New-Item -ItemType SymbolicLink -Path ".github\skills\login-enterprise-transcribe-video" -Target "$PWD\skills\login-enterprise-transcribe-video"
+```
+
+See [install/agent-configs/copilot.md](install/agent-configs/copilot.md) for additional setup details.
+
+</details>
+
+<details>
+<summary>Windsurf</summary>
+
+```bash
+# Project-level
+mkdir -p .windsurf/skills
+ln -s "$(pwd)/skills/login-enterprise-write-script" .windsurf/skills/
+ln -s "$(pwd)/skills/login-enterprise-validate-script" .windsurf/skills/
+ln -s "$(pwd)/skills/login-enterprise-run-script" .windsurf/skills/
+ln -s "$(pwd)/skills/login-enterprise-map-application" .windsurf/skills/
+ln -s "$(pwd)/skills/login-enterprise-transcribe-video" .windsurf/skills/
+```
+
+```powershell
+# Windows (run as Administrator for symlinks)
+New-Item -ItemType Directory -Path ".windsurf\skills" -Force
+New-Item -ItemType SymbolicLink -Path ".windsurf\skills\login-enterprise-write-script" -Target "$PWD\skills\login-enterprise-write-script"
+New-Item -ItemType SymbolicLink -Path ".windsurf\skills\login-enterprise-validate-script" -Target "$PWD\skills\login-enterprise-validate-script"
+New-Item -ItemType SymbolicLink -Path ".windsurf\skills\login-enterprise-run-script" -Target "$PWD\skills\login-enterprise-run-script"
+New-Item -ItemType SymbolicLink -Path ".windsurf\skills\login-enterprise-map-application" -Target "$PWD\skills\login-enterprise-map-application"
+New-Item -ItemType SymbolicLink -Path ".windsurf\skills\login-enterprise-transcribe-video" -Target "$PWD\skills\login-enterprise-transcribe-video"
+```
+
+See [install/agent-configs/windsurf.md](install/agent-configs/windsurf.md) for additional setup details.
+
+</details>
+
+<details>
+<summary>Roo Code</summary>
+
+```bash
+# Project-level
+mkdir -p .roo/skills
+ln -s "$(pwd)/skills/login-enterprise-write-script" .roo/skills/
+ln -s "$(pwd)/skills/login-enterprise-validate-script" .roo/skills/
+ln -s "$(pwd)/skills/login-enterprise-run-script" .roo/skills/
+ln -s "$(pwd)/skills/login-enterprise-map-application" .roo/skills/
+ln -s "$(pwd)/skills/login-enterprise-transcribe-video" .roo/skills/
+```
+
+```powershell
+# Windows (run as Administrator for symlinks)
+New-Item -ItemType Directory -Path ".roo\skills" -Force
+New-Item -ItemType SymbolicLink -Path ".roo\skills\login-enterprise-write-script" -Target "$PWD\skills\login-enterprise-write-script"
+New-Item -ItemType SymbolicLink -Path ".roo\skills\login-enterprise-validate-script" -Target "$PWD\skills\login-enterprise-validate-script"
+New-Item -ItemType SymbolicLink -Path ".roo\skills\login-enterprise-run-script" -Target "$PWD\skills\login-enterprise-run-script"
+New-Item -ItemType SymbolicLink -Path ".roo\skills\login-enterprise-map-application" -Target "$PWD\skills\login-enterprise-map-application"
+New-Item -ItemType SymbolicLink -Path ".roo\skills\login-enterprise-transcribe-video" -Target "$PWD\skills\login-enterprise-transcribe-video"
+```
+
+See [install/agent-configs/roo-code.md](install/agent-configs/roo-code.md) for additional setup details.
+
+</details>
+
+<details>
+<summary>Junie (JetBrains)</summary>
+
+```bash
+# Project-level
+mkdir -p .junie/skills
+ln -s "$(pwd)/skills/login-enterprise-write-script" .junie/skills/
+ln -s "$(pwd)/skills/login-enterprise-validate-script" .junie/skills/
+ln -s "$(pwd)/skills/login-enterprise-run-script" .junie/skills/
+ln -s "$(pwd)/skills/login-enterprise-map-application" .junie/skills/
+ln -s "$(pwd)/skills/login-enterprise-transcribe-video" .junie/skills/
+```
+
+```powershell
+# Windows (run as Administrator for symlinks)
+New-Item -ItemType Directory -Path ".junie\skills" -Force
+New-Item -ItemType SymbolicLink -Path ".junie\skills\login-enterprise-write-script" -Target "$PWD\skills\login-enterprise-write-script"
+New-Item -ItemType SymbolicLink -Path ".junie\skills\login-enterprise-validate-script" -Target "$PWD\skills\login-enterprise-validate-script"
+New-Item -ItemType SymbolicLink -Path ".junie\skills\login-enterprise-run-script" -Target "$PWD\skills\login-enterprise-run-script"
+New-Item -ItemType SymbolicLink -Path ".junie\skills\login-enterprise-map-application" -Target "$PWD\skills\login-enterprise-map-application"
+New-Item -ItemType SymbolicLink -Path ".junie\skills\login-enterprise-transcribe-video" -Target "$PWD\skills\login-enterprise-transcribe-video"
+```
+
+See [install/agent-configs/junie.md](install/agent-configs/junie.md) for additional setup details.
+
+</details>
+
+<details>
+<summary>Goose</summary>
+
+```bash
+# Project-level
+mkdir -p .goose/skills
+ln -s "$(pwd)/skills/login-enterprise-write-script" .goose/skills/
+ln -s "$(pwd)/skills/login-enterprise-validate-script" .goose/skills/
+ln -s "$(pwd)/skills/login-enterprise-run-script" .goose/skills/
+ln -s "$(pwd)/skills/login-enterprise-map-application" .goose/skills/
+ln -s "$(pwd)/skills/login-enterprise-transcribe-video" .goose/skills/
+```
+
+```powershell
+# Windows (run as Administrator for symlinks)
+New-Item -ItemType Directory -Path ".goose\skills" -Force
+New-Item -ItemType SymbolicLink -Path ".goose\skills\login-enterprise-write-script" -Target "$PWD\skills\login-enterprise-write-script"
+New-Item -ItemType SymbolicLink -Path ".goose\skills\login-enterprise-validate-script" -Target "$PWD\skills\login-enterprise-validate-script"
+New-Item -ItemType SymbolicLink -Path ".goose\skills\login-enterprise-run-script" -Target "$PWD\skills\login-enterprise-run-script"
+New-Item -ItemType SymbolicLink -Path ".goose\skills\login-enterprise-map-application" -Target "$PWD\skills\login-enterprise-map-application"
+New-Item -ItemType SymbolicLink -Path ".goose\skills\login-enterprise-transcribe-video" -Target "$PWD\skills\login-enterprise-transcribe-video"
+```
+
+See [install/agent-configs/goose.md](install/agent-configs/goose.md) for additional setup details.
+
+</details>
+
+<details>
+<summary>Antigravity</summary>
+
+```bash
+# Project-level
+mkdir -p .agents/skills
+ln -s "$(pwd)/skills/login-enterprise-write-script" .agents/skills/
+ln -s "$(pwd)/skills/login-enterprise-validate-script" .agents/skills/
+ln -s "$(pwd)/skills/login-enterprise-run-script" .agents/skills/
+ln -s "$(pwd)/skills/login-enterprise-map-application" .agents/skills/
+ln -s "$(pwd)/skills/login-enterprise-transcribe-video" .agents/skills/
+```
+
+```powershell
+# Windows (run as Administrator for symlinks)
+New-Item -ItemType Directory -Path ".agents\skills" -Force
+New-Item -ItemType SymbolicLink -Path ".agents\skills\login-enterprise-write-script" -Target "$PWD\skills\login-enterprise-write-script"
+New-Item -ItemType SymbolicLink -Path ".agents\skills\login-enterprise-validate-script" -Target "$PWD\skills\login-enterprise-validate-script"
+New-Item -ItemType SymbolicLink -Path ".agents\skills\login-enterprise-run-script" -Target "$PWD\skills\login-enterprise-run-script"
+New-Item -ItemType SymbolicLink -Path ".agents\skills\login-enterprise-map-application" -Target "$PWD\skills\login-enterprise-map-application"
+New-Item -ItemType SymbolicLink -Path ".agents\skills\login-enterprise-transcribe-video" -Target "$PWD\skills\login-enterprise-transcribe-video"
+```
+
+See [install/agent-configs/antigravity.md](install/agent-configs/antigravity.md) for additional setup details.
+
+</details>
+
+<details>
+<summary>OpenCode</summary>
+
+```bash
+# Project-level
+mkdir -p .opencode/skills
+ln -s "$(pwd)/skills/login-enterprise-write-script" .opencode/skills/
+ln -s "$(pwd)/skills/login-enterprise-validate-script" .opencode/skills/
+ln -s "$(pwd)/skills/login-enterprise-run-script" .opencode/skills/
+ln -s "$(pwd)/skills/login-enterprise-map-application" .opencode/skills/
+ln -s "$(pwd)/skills/login-enterprise-transcribe-video" .opencode/skills/
+```
+
+```powershell
+# Windows (run as Administrator for symlinks)
+New-Item -ItemType Directory -Path ".opencode\skills" -Force
+New-Item -ItemType SymbolicLink -Path ".opencode\skills\login-enterprise-write-script" -Target "$PWD\skills\login-enterprise-write-script"
+New-Item -ItemType SymbolicLink -Path ".opencode\skills\login-enterprise-validate-script" -Target "$PWD\skills\login-enterprise-validate-script"
+New-Item -ItemType SymbolicLink -Path ".opencode\skills\login-enterprise-run-script" -Target "$PWD\skills\login-enterprise-run-script"
+New-Item -ItemType SymbolicLink -Path ".opencode\skills\login-enterprise-map-application" -Target "$PWD\skills\login-enterprise-map-application"
+New-Item -ItemType SymbolicLink -Path ".opencode\skills\login-enterprise-transcribe-video" -Target "$PWD\skills\login-enterprise-transcribe-video"
+```
+
+See [install/agent-configs/opencode.md](install/agent-configs/opencode.md) for additional setup details.
+
+</details>
+
+<details>
+<summary>Kilo Code</summary>
+
+```bash
+# Project-level
+mkdir -p .kilo/skills
+ln -s "$(pwd)/skills/login-enterprise-write-script" .kilo/skills/
+ln -s "$(pwd)/skills/login-enterprise-validate-script" .kilo/skills/
+ln -s "$(pwd)/skills/login-enterprise-run-script" .kilo/skills/
+ln -s "$(pwd)/skills/login-enterprise-map-application" .kilo/skills/
+ln -s "$(pwd)/skills/login-enterprise-transcribe-video" .kilo/skills/
+```
+
+```powershell
+# Windows (run as Administrator for symlinks)
+New-Item -ItemType Directory -Path ".kilo\skills" -Force
+New-Item -ItemType SymbolicLink -Path ".kilo\skills\login-enterprise-write-script" -Target "$PWD\skills\login-enterprise-write-script"
+New-Item -ItemType SymbolicLink -Path ".kilo\skills\login-enterprise-validate-script" -Target "$PWD\skills\login-enterprise-validate-script"
+New-Item -ItemType SymbolicLink -Path ".kilo\skills\login-enterprise-run-script" -Target "$PWD\skills\login-enterprise-run-script"
+New-Item -ItemType SymbolicLink -Path ".kilo\skills\login-enterprise-map-application" -Target "$PWD\skills\login-enterprise-map-application"
+New-Item -ItemType SymbolicLink -Path ".kilo\skills\login-enterprise-transcribe-video" -Target "$PWD\skills\login-enterprise-transcribe-video"
+```
+
+See [install/agent-configs/kilo-code.md](install/agent-configs/kilo-code.md) for additional setup details.
+
+</details>
+
+<details>
+<summary>Trae</summary>
+
+```bash
+# Project-level
+mkdir -p .trae/skills
+ln -s "$(pwd)/skills/login-enterprise-write-script" .trae/skills/
+ln -s "$(pwd)/skills/login-enterprise-validate-script" .trae/skills/
+ln -s "$(pwd)/skills/login-enterprise-run-script" .trae/skills/
+ln -s "$(pwd)/skills/login-enterprise-map-application" .trae/skills/
+ln -s "$(pwd)/skills/login-enterprise-transcribe-video" .trae/skills/
+```
+
+```powershell
+# Windows (run as Administrator for symlinks)
+New-Item -ItemType Directory -Path ".trae\skills" -Force
+New-Item -ItemType SymbolicLink -Path ".trae\skills\login-enterprise-write-script" -Target "$PWD\skills\login-enterprise-write-script"
+New-Item -ItemType SymbolicLink -Path ".trae\skills\login-enterprise-validate-script" -Target "$PWD\skills\login-enterprise-validate-script"
+New-Item -ItemType SymbolicLink -Path ".trae\skills\login-enterprise-run-script" -Target "$PWD\skills\login-enterprise-run-script"
+New-Item -ItemType SymbolicLink -Path ".trae\skills\login-enterprise-map-application" -Target "$PWD\skills\login-enterprise-map-application"
+New-Item -ItemType SymbolicLink -Path ".trae\skills\login-enterprise-transcribe-video" -Target "$PWD\skills\login-enterprise-transcribe-video"
+```
+
+See [install/agent-configs/trae.md](install/agent-configs/trae.md) for additional setup details.
 
 </details>
 

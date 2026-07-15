@@ -3,11 +3,11 @@
 .SYNOPSIS
     Install Login Enterprise skills for supported AI coding agents.
 .PARAMETER Agent
-    Which agent to install for: Claude, Codex, Gemini, Cursor, or All.
+    Which agent to install for: Claude, Codex, Gemini, Cursor, Copilot, Windsurf, Roo, Junie, Goose, Antigravity, OpenCode, Kilo, Trae, or All.
 .PARAMETER Project
-    Install Claude Code skills to project-level (.claude/skills/) instead of global.
+    Install skills to project-level instead of global (applies to Claude, Codex).
 .PARAMETER Global
-    Install Gemini CLI skills to global (~/.gemini/skills/) instead of project-level.
+    Install skills to global instead of project-level (applies to Gemini, Goose, Antigravity, OpenCode, Kilo, Trae).
 .EXAMPLE
     .\install.ps1 -Agent Claude
     .\install.ps1 -Agent Claude -Project
@@ -16,7 +16,7 @@
     .\install.ps1 -Agent All
 #>
 param(
-    [ValidateSet('Claude', 'Codex', 'Gemini', 'Cursor', 'All')]
+    [ValidateSet('Claude', 'Codex', 'Gemini', 'Cursor', 'Copilot', 'Windsurf', 'Roo', 'Junie', 'Goose', 'Antigravity', 'OpenCode', 'Kilo', 'Trae', 'All')]
     [string]$Agent,
     [switch]$Project,
     [switch]$Global
@@ -64,23 +64,50 @@ if (-not $Agent) {
     Write-Host "  2) OpenAI Codex    (project: .agent-skills/)"
     Write-Host "  3) Gemini CLI      (project: .gemini/skills/)"
     Write-Host "  4) Cursor          (project: .cursor/skills/)"
-    Write-Host "  5) All"
+    Write-Host "  5) GitHub Copilot  (project: .github/skills/)"
+    Write-Host "  6) Windsurf        (project: .windsurf/skills/)"
+    Write-Host "  7) Roo Code        (project: .roo/skills/)"
+    Write-Host "  8) Junie           (project: .junie/skills/)"
+    Write-Host "  9) Goose           (project: .goose/skills/)"
+    Write-Host " 10) Antigravity     (project: .agents/skills/)"
+    Write-Host " 11) OpenCode        (project: .opencode/skills/)"
+    Write-Host " 12) Kilo Code       (project: .kilo/skills/)"
+    Write-Host " 13) Trae            (project: .trae/skills/)"
+    Write-Host " 14) All"
     Write-Host ""
-    $choice = Read-Host "Choice [1/2/3/4/5]"
+    $choice = Read-Host "Choice [1-14]"
     switch ($choice) {
-        '1' { $Agent = 'Claude' }
-        '2' { $Agent = 'Codex' }
-        '3' { $Agent = 'Gemini' }
-        '4' { $Agent = 'Cursor' }
-        '5' { $Agent = 'All' }
+        '1'  { $Agent = 'Claude' }
+        '2'  { $Agent = 'Codex' }
+        '3'  { $Agent = 'Gemini' }
+        '4'  { $Agent = 'Cursor' }
+        '5'  { $Agent = 'Copilot' }
+        '6'  { $Agent = 'Windsurf' }
+        '7'  { $Agent = 'Roo' }
+        '8'  { $Agent = 'Junie' }
+        '9'  { $Agent = 'Goose' }
+        '10' { $Agent = 'Antigravity' }
+        '11' { $Agent = 'OpenCode' }
+        '12' { $Agent = 'Kilo' }
+        '13' { $Agent = 'Trae' }
+        '14' { $Agent = 'All' }
         default { Write-Host "Invalid choice" -ForegroundColor Red; exit 1 }
     }
 }
 
-$installClaude = $Agent -in @('Claude', 'All')
-$installCodex  = $Agent -in @('Codex', 'All')
-$installGemini = $Agent -in @('Gemini', 'All')
-$installCursor = $Agent -in @('Cursor', 'All')
+$installClaude  = $Agent -in @('Claude', 'All')
+$installCodex   = $Agent -in @('Codex', 'All')
+$installGemini  = $Agent -in @('Gemini', 'All')
+$installCursor  = $Agent -in @('Cursor', 'All')
+$installCopilot  = $Agent -in @('Copilot', 'All')
+$installWindsurf = $Agent -in @('Windsurf', 'All')
+$installRoo      = $Agent -in @('Roo', 'All')
+$installJunie       = $Agent -in @('Junie', 'All')
+$installGoose       = $Agent -in @('Goose', 'All')
+$installAntigravity = $Agent -in @('Antigravity', 'All')
+$installOpenCode    = $Agent -in @('OpenCode', 'All')
+$installKilo        = $Agent -in @('Kilo', 'All')
+$installTrae        = $Agent -in @('Trae', 'All')
 $installed = 0
 
 # Helper: install skills to a target directory
@@ -135,6 +162,71 @@ if ($installGemini) {
 # Cursor (project: .cursor/skills/)
 if ($installCursor) {
     Install-SkillsTo "Cursor" (Join-Path (Join-Path (Get-Location) '.cursor') 'skills')
+}
+
+# GitHub Copilot (project: .github/skills/)
+if ($installCopilot) {
+    Install-SkillsTo "GitHub Copilot" (Join-Path (Join-Path (Get-Location) '.github') 'skills')
+}
+
+# Windsurf (project: .windsurf/skills/)
+if ($installWindsurf) {
+    Install-SkillsTo "Windsurf" (Join-Path (Join-Path (Get-Location) '.windsurf') 'skills')
+}
+
+# Roo Code (project: .roo/skills/)
+if ($installRoo) {
+    Install-SkillsTo "Roo Code" (Join-Path (Join-Path (Get-Location) '.roo') 'skills')
+}
+
+# Junie (project: .junie/skills/)
+if ($installJunie) {
+    Install-SkillsTo "Junie" (Join-Path (Join-Path (Get-Location) '.junie') 'skills')
+}
+
+# Goose (default: project .goose/skills/, -Global for ~/.agents/skills/)
+if ($installGoose) {
+    if ($Global) {
+        Install-SkillsTo "Goose (global)" (Join-Path (Join-Path $HOME '.agents') 'skills')
+    } else {
+        Install-SkillsTo "Goose" (Join-Path (Join-Path (Get-Location) '.goose') 'skills')
+    }
+}
+
+# Antigravity (default: project .agents/skills/, -Global for ~/.gemini/config/skills/)
+if ($installAntigravity) {
+    if ($Global) {
+        Install-SkillsTo "Antigravity (global)" (Join-Path (Join-Path (Join-Path $HOME '.gemini') 'config') 'skills')
+    } else {
+        Install-SkillsTo "Antigravity" (Join-Path (Join-Path (Get-Location) '.agents') 'skills')
+    }
+}
+
+# OpenCode (default: project .opencode/skills/, -Global for ~/.config/opencode/skills/)
+if ($installOpenCode) {
+    if ($Global) {
+        Install-SkillsTo "OpenCode (global)" (Join-Path (Join-Path (Join-Path $HOME '.config') 'opencode') 'skills')
+    } else {
+        Install-SkillsTo "OpenCode" (Join-Path (Join-Path (Get-Location) '.opencode') 'skills')
+    }
+}
+
+# Kilo Code (default: project .kilo/skills/, -Global for ~/.kilo/skills/)
+if ($installKilo) {
+    if ($Global) {
+        Install-SkillsTo "Kilo Code (global)" (Join-Path (Join-Path $HOME '.kilo') 'skills')
+    } else {
+        Install-SkillsTo "Kilo Code" (Join-Path (Join-Path (Get-Location) '.kilo') 'skills')
+    }
+}
+
+# Trae (default: project .trae/skills/, -Global for ~/.trae/skills/)
+if ($installTrae) {
+    if ($Global) {
+        Install-SkillsTo "Trae (global)" (Join-Path (Join-Path $HOME '.trae') 'skills')
+    } else {
+        Install-SkillsTo "Trae" (Join-Path (Join-Path (Get-Location) '.trae') 'skills')
+    }
 }
 
 Write-Host ""
