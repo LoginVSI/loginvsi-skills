@@ -2,18 +2,25 @@
 <#
 .SYNOPSIS
     Install Login Enterprise skills for supported AI coding agents.
+.DESCRIPTION
+    Copies skill directories into agent-specific locations. All agents that scan
+    .agents/skills/ get skills there; agents that don't (Claude, Junie, Trae, Kilo)
+    also get a copy in their native path. No symlinks are used.
+
+    Run without parameters for an interactive checkbox UI, or use -Agent for
+    non-interactive installation.
 .PARAMETER Agent
-    Which agent to install for: Claude, Codex, Gemini, Cursor, Copilot, Windsurf, Roo, Junie, Goose, Antigravity, OpenCode, Kilo, Trae, or All.
+    Which agent to install for: Claude, Codex, Gemini, Cursor, Copilot, Windsurf,
+    Roo, Junie, Goose, Antigravity, OpenCode, Kilo, Trae, or All.
 .PARAMETER Project
-    Install skills to project-level instead of global (applies to Claude, Codex).
+    Install skills at project level (current directory or specified path).
 .PARAMETER Global
-    Install skills to global instead of project-level (applies to Gemini, Goose, Antigravity, OpenCode, Kilo, Trae).
+    Install skills globally (user home directory).
 .EXAMPLE
-    .\install.ps1 -Agent Claude
-    .\install.ps1 -Agent Claude -Project
-    .\install.ps1 -Agent Gemini
-    .\install.ps1 -Agent Gemini -Global
-    .\install.ps1 -Agent All
+    .\install.ps1
+    .\install.ps1 -Agent Claude -Global
+    .\install.ps1 -Agent All -Project
+    .\install.ps1 -Agent Codex -Project
 #>
 param(
     [ValidateSet('Claude', 'Codex', 'Gemini', 'Cursor', 'Copilot', 'Windsurf', 'Roo', 'Junie', 'Goose', 'Antigravity', 'OpenCode', 'Kilo', 'Trae', 'All')]
@@ -24,26 +31,36 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-
-# Check symlink capability — requires Developer Mode or Administrator on Windows
-try {
-    $testLink = Join-Path $env:TEMP 'le-skills-symlink-test'
-    $testTarget = $ScriptDir
-    New-Item -ItemType SymbolicLink -Path $testLink -Target $testTarget -ErrorAction Stop | Out-Null
-    Remove-Item $testLink -Force
-} catch {
-    Write-Host "Error: Cannot create symbolic links." -ForegroundColor Red
-    Write-Host "Enable Developer Mode in Windows Settings, or run as Administrator." -ForegroundColor Yellow
-    exit 1
-}
 $RepoDir = Split-Path -Parent $ScriptDir
 $SkillsDir = Join-Path $RepoDir 'skills'
 
+# ── Agent definitions ──────────────────────────────────────────────────────────
+# ScansAgentsSkills: whether the agent reads .agents/skills/ automatically
+# NativeDir: relative subfolder for agents that DON'T scan .agents/skills/
+
+$AgentDefs = [ordered]@{
+    'Claude'      = @{ Label = 'Claude Code';    ScansAgentsSkills = $false; NativeDir = '.claude/skills' }
+    'Codex'       = @{ Label = 'OpenAI Codex';   ScansAgentsSkills = $true;  NativeDir = $null }
+    'Gemini'      = @{ Label = 'Gemini CLI';     ScansAgentsSkills = $true;  NativeDir = $null }
+    'Cursor'      = @{ Label = 'Cursor';         ScansAgentsSkills = $true;  NativeDir = $null }
+    'Copilot'     = @{ Label = 'GitHub Copilot'; ScansAgentsSkills = $true;  NativeDir = $null }
+    'Windsurf'    = @{ Label = 'Windsurf';       ScansAgentsSkills = $true;  NativeDir = $null }
+    'Roo'         = @{ Label = 'Roo Code';       ScansAgentsSkills = $true;  NativeDir = $null }
+    'Junie'       = @{ Label = 'Junie';          ScansAgentsSkills = $false; NativeDir = '.junie/skills' }
+    'Goose'       = @{ Label = 'Goose';          ScansAgentsSkills = $true;  NativeDir = $null }
+    'OpenCode'    = @{ Label = 'OpenCode';       ScansAgentsSkills = $true;  NativeDir = $null }
+    'Trae'        = @{ Label = 'Trae';           ScansAgentsSkills = $false; NativeDir = '.trae/skills' }
+    'Kilo'        = @{ Label = 'Kilo Code';      ScansAgentsSkills = $false; NativeDir = '.kilo/skills' }
+    'Antigravity' = @{ Label = 'Antigravity';    ScansAgentsSkills = $true;  NativeDir = $null }
+}
+$AgentKeys = @($AgentDefs.Keys)
+
+# ── Skills discovery ───────────────────────────────────────────────────────────
+
 Write-Host "Login Enterprise Skills Installer" -ForegroundColor Cyan
-Write-Host "=================================" -ForegroundColor Cyan
+Write-Host "===================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Collect available skills
 $skills = Get-ChildItem -Path $SkillsDir -Directory -Filter 'login-enterprise-*' |
     Where-Object { Test-Path (Join-Path $_.FullName 'SKILL.md') } |
     Select-Object -ExpandProperty Name
@@ -56,176 +73,231 @@ if ($skills.Count -eq 0) {
 Write-Host "Found $($skills.Count) skill(s): $($skills -join ', ')"
 Write-Host ""
 
-# Agent selection
-if (-not $Agent) {
-    Write-Host "Select agents to install for:"
-    Write-Host ""
-    Write-Host "  1) Claude Code     (global: ~/.claude/skills/)"
-    Write-Host "  2) OpenAI Codex    (project: .agent-skills/)"
-    Write-Host "  3) Gemini CLI      (project: .gemini/skills/)"
-    Write-Host "  4) Cursor          (project: .cursor/skills/)"
-    Write-Host "  5) GitHub Copilot  (project: .github/skills/)"
-    Write-Host "  6) Windsurf        (project: .windsurf/skills/)"
-    Write-Host "  7) Roo Code        (project: .roo/skills/)"
-    Write-Host "  8) Junie           (project: .junie/skills/)"
-    Write-Host "  9) Goose           (project: .goose/skills/)"
-    Write-Host " 10) Antigravity     (project: .agents/skills/)"
-    Write-Host " 11) OpenCode        (project: .opencode/skills/)"
-    Write-Host " 12) Kilo Code       (project: .kilo/skills/)"
-    Write-Host " 13) Trae            (project: .trae/skills/)"
-    Write-Host " 14) All"
-    Write-Host ""
-    $choice = Read-Host "Choice [1-14]"
-    switch ($choice) {
-        '1'  { $Agent = 'Claude' }
-        '2'  { $Agent = 'Codex' }
-        '3'  { $Agent = 'Gemini' }
-        '4'  { $Agent = 'Cursor' }
-        '5'  { $Agent = 'Copilot' }
-        '6'  { $Agent = 'Windsurf' }
-        '7'  { $Agent = 'Roo' }
-        '8'  { $Agent = 'Junie' }
-        '9'  { $Agent = 'Goose' }
-        '10' { $Agent = 'Antigravity' }
-        '11' { $Agent = 'OpenCode' }
-        '12' { $Agent = 'Kilo' }
-        '13' { $Agent = 'Trae' }
-        '14' { $Agent = 'All' }
-        default { Write-Host "Invalid choice" -ForegroundColor Red; exit 1 }
-    }
-}
+# ── Install helper ─────────────────────────────────────────────────────────────
 
-$installClaude  = $Agent -in @('Claude', 'All')
-$installCodex   = $Agent -in @('Codex', 'All')
-$installGemini  = $Agent -in @('Gemini', 'All')
-$installCursor  = $Agent -in @('Cursor', 'All')
-$installCopilot  = $Agent -in @('Copilot', 'All')
-$installWindsurf = $Agent -in @('Windsurf', 'All')
-$installRoo      = $Agent -in @('Roo', 'All')
-$installJunie       = $Agent -in @('Junie', 'All')
-$installGoose       = $Agent -in @('Goose', 'All')
-$installAntigravity = $Agent -in @('Antigravity', 'All')
-$installOpenCode    = $Agent -in @('OpenCode', 'All')
-$installKilo        = $Agent -in @('Kilo', 'All')
-$installTrae        = $Agent -in @('Trae', 'All')
 $installed = 0
 
-# Helper: install skills to a target directory
 function Install-SkillsTo {
-    param([string]$AgentName, [string]$TargetDir)
+    param([string]$Label, [string]$TargetDir)
     if (-not (Test-Path $TargetDir)) {
         New-Item -ItemType Directory -Path $TargetDir -Force | Out-Null
     }
     Write-Host ""
-    Write-Host "Installing for $AgentName -> $TargetDir"
+    Write-Host "Copying skills to $Label -> $TargetDir"
     foreach ($skill in $skills) {
         $target = Join-Path $TargetDir $skill
         $source = Join-Path $SkillsDir $skill
-        $existing = Get-Item $target -Force -ErrorAction SilentlyContinue
-        if ($existing -and $existing.LinkType -eq 'SymbolicLink') {
-            Remove-Item $target -Force
-            Write-Host "  Replacing broken symlink: $skill" -ForegroundColor Yellow
-        }
         if (Test-Path $target) {
-            Write-Host "  Skipping $skill (already exists)" -ForegroundColor Yellow
+            Remove-Item $target -Recurse -Force
+            Copy-Item -Path $source -Destination $target -Recurse -Force
+            Write-Host "  ~ $skill (updated)" -ForegroundColor Yellow
         } else {
-            New-Item -ItemType SymbolicLink -Path $target -Target $source | Out-Null
+            Copy-Item -Path $source -Destination $target -Recurse -Force
             Write-Host "  + $skill" -ForegroundColor Green
-            $script:installed++
+        }
+        $script:installed++
+    }
+}
+
+# ── Scope prompt helper ───────────────────────────────────────────────────────
+
+function Get-AgentScope {
+    param([string]$AgentLabel)
+
+    Write-Host ""
+    Write-Host "$AgentLabel supports installing skills globally or at a project level."
+    Write-Host "  Global  - available in all your projects"
+    Write-Host "  Project - available in one project folder only"
+    $scopeChoice = Read-Host "Install globally or at project level? [g/p]"
+
+    if ($scopeChoice -match '^[pP]') {
+        $cwd = (Get-Location).Path
+        Write-Host ""
+        Write-Host "Install to this folder? ($cwd)"
+        Write-Host "  1) Yes, use this folder"
+        Write-Host "  2) Different folder"
+        $folderChoice = Read-Host "Choice [1-2]"
+        if ($folderChoice -eq '2') {
+            $customPath = Read-Host "Enter project folder path"
+            if (-not (Test-Path $customPath -PathType Container)) {
+                Write-Host "Warning: '$customPath' does not exist. It will be created." -ForegroundColor Yellow
+            }
+            return @{ Scope = 'project'; ProjectPath = $customPath }
+        } else {
+            return @{ Scope = 'project'; ProjectPath = $cwd }
+        }
+    } else {
+        return @{ Scope = 'global'; ProjectPath = $null }
+    }
+}
+
+# ── Compute target directories for an agent + scope ───────────────────────────
+
+function Get-TargetDirs {
+    param(
+        [string]$Key,
+        [hashtable]$ScopeInfo
+    )
+    $def = $AgentDefs[$Key]
+    $targets = @()
+
+    if ($ScopeInfo.Scope -eq 'global') {
+        $base = $HOME
+        $scopeLabel = 'global'
+    } else {
+        $base = $ScopeInfo.ProjectPath
+        $scopeLabel = 'project'
+    }
+
+    # Every agent gets .agents/skills/
+    $agentsPath = Join-Path $base '.agents/skills'
+    $targets += @{ Label = "$($def.Label) ($scopeLabel, .agents/skills)"; Path = $agentsPath }
+
+    # Agents that don't scan .agents/skills/ also get their native path
+    if (-not $def.ScansAgentsSkills -and $def.NativeDir) {
+        $nativePath = Join-Path $base $def.NativeDir
+        $targets += @{ Label = "$($def.Label) ($scopeLabel, native)"; Path = $nativePath }
+    }
+
+    return $targets
+}
+
+# ── Interactive checkbox UI ────────────────────────────────────────────────────
+
+function Show-CheckboxUI {
+    $selected = @{}
+    foreach ($k in $AgentKeys) { $selected[$k] = $false }
+
+    function Draw-List {
+        for ($i = 0; $i -lt $AgentKeys.Count; $i++) {
+            $key = $AgentKeys[$i]
+            $def = $AgentDefs[$key]
+            $mark = if ($selected[$key]) { '[x]' } else { '[ ]' }
+            $num = ($i + 1).ToString().PadLeft(2)
+            Write-Host "  $mark $num) $($def.Label)"
         }
     }
-}
 
-# Claude Code (default: global ~/.claude/skills/, -Project for .claude/skills/)
-if ($installClaude) {
-    if ($Project) {
-        Install-SkillsTo "Claude Code (project)" (Join-Path (Get-Location) '.claude/skills')
-    } else {
-        Install-SkillsTo "Claude Code" (Join-Path (Join-Path $HOME '.claude') 'skills')
+    Write-Host "Select agents to install for (enter numbers to toggle, Enter to confirm):"
+    Write-Host ""
+
+    $startY = [Console]::CursorTop
+    Draw-List
+
+    while ($true) {
+        Write-Host ""
+        $userInput = Read-Host "Select [ex. 1,2,13 or 1-13, a=all, Enter=continue]"
+
+        if ([string]::IsNullOrWhiteSpace($userInput)) {
+            break
+        }
+
+        if ($userInput.Trim().ToLower() -eq 'a') {
+            foreach ($k in $AgentKeys) { $selected[$k] = $true }
+        } else {
+            foreach ($part in ($userInput -split ',')) {
+                $part = $part.Trim()
+                if ($part -match '^\d+-\d+$') {
+                    $bounds = $part -split '-'
+                    $lo = [int]$bounds[0]
+                    $hi = [int]$bounds[1]
+                    for ($n = $lo; $n -le $hi; $n++) {
+                        if ($n -ge 1 -and $n -le $AgentKeys.Count) {
+                            $key = $AgentKeys[$n - 1]
+                            $selected[$key] = -not $selected[$key]
+                        }
+                    }
+                } elseif ($part -match '^\d+$') {
+                    $n = [int]$part
+                    if ($n -ge 1 -and $n -le $AgentKeys.Count) {
+                        $key = $AgentKeys[$n - 1]
+                        $selected[$key] = -not $selected[$key]
+                    }
+                }
+            }
+        }
+
+        [Console]::SetCursorPosition(0, $startY)
+        Draw-List
     }
+
+    return $AgentKeys | Where-Object { $selected[$_] }
 }
 
-# OpenAI Codex (project: .agent-skills/)
-if ($installCodex) {
-    Install-SkillsTo "OpenAI Codex" (Join-Path (Get-Location) '.agent-skills')
-}
+# ── Main logic ─────────────────────────────────────────────────────────────────
 
-# Gemini CLI (default: project .gemini/skills/, -Global for ~/.gemini/skills/)
-if ($installGemini) {
-    if ($Global) {
-        Install-SkillsTo "Gemini CLI (global)" (Join-Path (Join-Path $HOME '.gemini') 'skills')
+if ($Agent) {
+    # Non-interactive mode
+    if ($Agent -eq 'All') {
+        $selectedAgents = $AgentKeys
     } else {
-        Install-SkillsTo "Gemini CLI" (Join-Path (Get-Location) '.gemini/skills')
+        $selectedAgents = @($Agent)
     }
-}
 
-# Cursor (project: .cursor/skills/)
-if ($installCursor) {
-    Install-SkillsTo "Cursor" (Join-Path (Join-Path (Get-Location) '.cursor') 'skills')
-}
-
-# GitHub Copilot (project: .github/skills/)
-if ($installCopilot) {
-    Install-SkillsTo "GitHub Copilot" (Join-Path (Join-Path (Get-Location) '.github') 'skills')
-}
-
-# Windsurf (project: .windsurf/skills/)
-if ($installWindsurf) {
-    Install-SkillsTo "Windsurf" (Join-Path (Join-Path (Get-Location) '.windsurf') 'skills')
-}
-
-# Roo Code (project: .roo/skills/)
-if ($installRoo) {
-    Install-SkillsTo "Roo Code" (Join-Path (Join-Path (Get-Location) '.roo') 'skills')
-}
-
-# Junie (project: .junie/skills/)
-if ($installJunie) {
-    Install-SkillsTo "Junie" (Join-Path (Join-Path (Get-Location) '.junie') 'skills')
-}
-
-# Goose (default: project .goose/skills/, -Global for ~/.agents/skills/)
-if ($installGoose) {
-    if ($Global) {
-        Install-SkillsTo "Goose (global)" (Join-Path (Join-Path $HOME '.agents') 'skills')
-    } else {
-        Install-SkillsTo "Goose" (Join-Path (Join-Path (Get-Location) '.goose') 'skills')
+    if ($Project -and $Global) {
+        Write-Host "Error: Specify either -Project or -Global, not both." -ForegroundColor Red
+        exit 1
     }
-}
 
-# Antigravity (default: project .agents/skills/, -Global for ~/.gemini/config/skills/)
-if ($installAntigravity) {
-    if ($Global) {
-        Install-SkillsTo "Antigravity (global)" (Join-Path (Join-Path (Join-Path $HOME '.gemini') 'config') 'skills')
-    } else {
-        Install-SkillsTo "Antigravity" (Join-Path (Join-Path (Get-Location) '.agents') 'skills')
+    $allTargets = @()
+
+    foreach ($key in $selectedAgents) {
+        $def = $AgentDefs[$key]
+
+        if ($Project) {
+            $scopeInfo = @{ Scope = 'project'; ProjectPath = (Get-Location).Path }
+        } elseif ($Global) {
+            $scopeInfo = @{ Scope = 'global'; ProjectPath = $null }
+        } else {
+            $scopeInfo = Get-AgentScope $def.Label
+        }
+
+        $allTargets += Get-TargetDirs -Key $key -ScopeInfo $scopeInfo
     }
-}
 
-# OpenCode (default: project .opencode/skills/, -Global for ~/.config/opencode/skills/)
-if ($installOpenCode) {
-    if ($Global) {
-        Install-SkillsTo "OpenCode (global)" (Join-Path (Join-Path (Join-Path $HOME '.config') 'opencode') 'skills')
-    } else {
-        Install-SkillsTo "OpenCode" (Join-Path (Join-Path (Get-Location) '.opencode') 'skills')
+    $uniqueTargets = @{}
+    foreach ($t in $allTargets) {
+        $norm = $t.Path.TrimEnd('\', '/')
+        if (-not $uniqueTargets.ContainsKey($norm)) {
+            $uniqueTargets[$norm] = $t.Label
+        }
     }
-}
 
-# Kilo Code (default: project .kilo/skills/, -Global for ~/.kilo/skills/)
-if ($installKilo) {
-    if ($Global) {
-        Install-SkillsTo "Kilo Code (global)" (Join-Path (Join-Path $HOME '.kilo') 'skills')
-    } else {
-        Install-SkillsTo "Kilo Code" (Join-Path (Join-Path (Get-Location) '.kilo') 'skills')
+    foreach ($path in $uniqueTargets.Keys) {
+        Install-SkillsTo $uniqueTargets[$path] $path
     }
-}
 
-# Trae (default: project .trae/skills/, -Global for ~/.trae/skills/)
-if ($installTrae) {
-    if ($Global) {
-        Install-SkillsTo "Trae (global)" (Join-Path (Join-Path $HOME '.trae') 'skills')
-    } else {
-        Install-SkillsTo "Trae" (Join-Path (Join-Path (Get-Location) '.trae') 'skills')
+} else {
+    # Interactive mode
+    $selectedAgents = Show-CheckboxUI
+
+    if (-not $selectedAgents -or $selectedAgents.Count -eq 0) {
+        Write-Host ""
+        Write-Host "No agents selected. Nothing to install." -ForegroundColor Yellow
+        exit 0
+    }
+
+    Write-Host ""
+    Write-Host "Selected: $( ($selectedAgents | ForEach-Object { $AgentDefs[$_].Label }) -join ', ' )"
+
+    $allTargets = @()
+
+    foreach ($key in $selectedAgents) {
+        $def = $AgentDefs[$key]
+        $scopeInfo = Get-AgentScope $def.Label
+        $allTargets += Get-TargetDirs -Key $key -ScopeInfo $scopeInfo
+    }
+
+    $uniqueTargets = @{}
+    foreach ($t in $allTargets) {
+        $norm = $t.Path.TrimEnd('\', '/')
+        if (-not $uniqueTargets.ContainsKey($norm)) {
+            $uniqueTargets[$norm] = $t.Label
+        }
+    }
+
+    foreach ($path in $uniqueTargets.Keys) {
+        Install-SkillsTo $uniqueTargets[$path] $path
     }
 }
 

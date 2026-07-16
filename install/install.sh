@@ -11,11 +11,94 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+# ---------------------------------------------------------------------------
+# Agent registry
+# ---------------------------------------------------------------------------
+# Each agent has:
+#   AGENT_NAMES[i]           — display name
+#   AGENT_FLAGS[i]           — CLI flag (e.g. --claude)
+#   AGENT_SCANS_DOTAGENTS[i] — 1 if it scans .agents/skills/, 0 if not
+#   AGENT_NATIVE_REL[i]     — native relative path (for project scope), empty if N/A
+#   AGENT_NATIVE_GLOBAL[i]  — native global path, empty if N/A
+
+AGENT_NAMES=(
+    "Claude Code"
+    "OpenAI Codex"
+    "Gemini CLI"
+    "Cursor"
+    "GitHub Copilot"
+    "Windsurf"
+    "Roo Code"
+    "Junie"
+    "Goose"
+    "OpenCode"
+    "Trae"
+    "Kilo Code"
+    "Antigravity"
+)
+
+AGENT_FLAGS=(
+    "--claude"
+    "--codex"
+    "--gemini"
+    "--cursor"
+    "--copilot"
+    "--windsurf"
+    "--roo"
+    "--junie"
+    "--goose"
+    "--opencode"
+    "--trae"
+    "--kilo"
+    "--antigravity"
+)
+
+# 1 = scans .agents/skills/ automatically, 0 = needs native path too
+AGENT_SCANS_DOTAGENTS=(0 1 1 1 1 1 1 0 1 1 0 0 1)
+
+# Native relative paths (project scope) — only for agents that don't scan .agents/skills/
+AGENT_NATIVE_REL=(
+    ".claude/skills"    # Claude Code
+    ""                  # Codex
+    ""                  # Gemini
+    ""                  # Cursor
+    ""                  # Copilot
+    ""                  # Windsurf
+    ""                  # Roo
+    ".junie/skills"     # Junie
+    ""                  # Goose
+    ""                  # OpenCode
+    ".trae/skills"      # Trae
+    ".kilo/skills"      # Kilo Code
+    ""                  # Antigravity
+)
+
+# Native global paths — only for agents that don't scan .agents/skills/
+AGENT_NATIVE_GLOBAL=(
+    "$HOME/.claude/skills"   # Claude Code
+    ""                       # Codex
+    ""                       # Gemini
+    ""                       # Cursor
+    ""                       # Copilot
+    ""                       # Windsurf
+    ""                       # Roo
+    "$HOME/.junie/skills"    # Junie
+    ""                       # Goose
+    ""                       # OpenCode
+    "$HOME/.trae/skills"     # Trae
+    "$HOME/.kilo/skills"     # Kilo Code
+    ""                       # Antigravity
+)
+
+AGENT_COUNT=${#AGENT_NAMES[@]}
+
+# ---------------------------------------------------------------------------
+# Discover skills
+# ---------------------------------------------------------------------------
 echo "Login Enterprise Skills Installer"
-echo "================================="
+echo "==================================="
 echo ""
 
-# Collect available skills
 SKILLS=()
 for dir in "$SKILLS_DIR"/login-enterprise-*/; do
     if [ -f "$dir/SKILL.md" ]; then
@@ -31,243 +114,309 @@ fi
 echo "Found ${#SKILLS[@]} skill(s): ${SKILLS[*]}"
 echo ""
 
-# Agent selection
-# Defaults: Claude=global, Codex/Gemini/Cursor=project-level
-# Override with --claude-project or --gemini-global
-INSTALL_CLAUDE=false
-INSTALL_CODEX=false
-INSTALL_GEMINI=false
-INSTALL_CURSOR=false
-INSTALL_COPILOT=false
-INSTALL_WINDSURF=false
-INSTALL_ROO=false
-INSTALL_JUNIE=false
-INSTALL_GOOSE=false
-INSTALL_ANTIGRAVITY=false
-INSTALL_OPENCODE=false
-INSTALL_KILO=false
-INSTALL_TRAE=false
-CLAUDE_MODE="global"        # default for Claude
-GEMINI_MODE="project"       # default for Gemini
-GOOSE_MODE="project"        # default for Goose
-ANTIGRAVITY_MODE="project"  # default for Antigravity
-OPENCODE_MODE="project"     # default for OpenCode
-KILO_MODE="project"         # default for Kilo Code
-TRAE_MODE="project"         # default for Trae
-
-if [ $# -gt 0 ]; then
-    for arg in "$@"; do
-        case "$arg" in
-            --claude)          INSTALL_CLAUDE=true ;;
-            --claude-project)  INSTALL_CLAUDE=true; CLAUDE_MODE="project" ;;
-            --codex)           INSTALL_CODEX=true ;;
-            --gemini)          INSTALL_GEMINI=true ;;
-            --gemini-global)   INSTALL_GEMINI=true; GEMINI_MODE="global" ;;
-            --cursor)          INSTALL_CURSOR=true ;;
-            --copilot)         INSTALL_COPILOT=true ;;
-            --windsurf)        INSTALL_WINDSURF=true ;;
-            --roo)             INSTALL_ROO=true ;;
-            --junie)           INSTALL_JUNIE=true ;;
-            --goose)           INSTALL_GOOSE=true ;;
-            --goose-global)    INSTALL_GOOSE=true; GOOSE_MODE="global" ;;
-            --antigravity)     INSTALL_ANTIGRAVITY=true ;;
-            --antigravity-global) INSTALL_ANTIGRAVITY=true; ANTIGRAVITY_MODE="global" ;;
-            --opencode)        INSTALL_OPENCODE=true ;;
-            --opencode-global) INSTALL_OPENCODE=true; OPENCODE_MODE="global" ;;
-            --kilo)            INSTALL_KILO=true ;;
-            --kilo-global)     INSTALL_KILO=true; KILO_MODE="global" ;;
-            --trae)            INSTALL_TRAE=true ;;
-            --trae-global)     INSTALL_TRAE=true; TRAE_MODE="global" ;;
-            --all)             INSTALL_CLAUDE=true; INSTALL_CODEX=true; INSTALL_GEMINI=true; INSTALL_CURSOR=true; INSTALL_COPILOT=true; INSTALL_WINDSURF=true; INSTALL_ROO=true; INSTALL_JUNIE=true; INSTALL_GOOSE=true; INSTALL_ANTIGRAVITY=true; INSTALL_OPENCODE=true; INSTALL_KILO=true; INSTALL_TRAE=true ;;
-            --help)
-                echo "Usage: install.sh [--claude] [--codex] [--gemini] [--cursor] [--copilot] [--windsurf] [--roo] [--junie] [--goose] [--antigravity] [--opencode] [--kilo] [--trae] [--all]"
-                echo ""
-                echo "  --claude              Install for Claude Code (global: ~/.claude/skills/)"
-                echo "  --claude-project      Install for Claude Code (project: .claude/skills/)"
-                echo "  --codex               Install for OpenAI Codex (project: .agent-skills/)"
-                echo "  --gemini              Install for Gemini CLI (project: .gemini/skills/)"
-                echo "  --gemini-global       Install for Gemini CLI (global: ~/.gemini/skills/)"
-                echo "  --cursor              Install for Cursor (project: .cursor/skills/)"
-                echo "  --copilot             Install for GitHub Copilot (project: .github/skills/)"
-                echo "  --windsurf            Install for Windsurf (project: .windsurf/skills/)"
-                echo "  --roo                 Install for Roo Code (project: .roo/skills/)"
-                echo "  --junie               Install for Junie (project: .junie/skills/)"
-                echo "  --goose               Install for Goose (project: .goose/skills/)"
-                echo "  --goose-global        Install for Goose (global: ~/.agents/skills/)"
-                echo "  --antigravity         Install for Antigravity (project: .agents/skills/)"
-                echo "  --antigravity-global  Install for Antigravity (global: ~/.gemini/config/skills/)"
-                echo "  --opencode            Install for OpenCode (project: .opencode/skills/)"
-                echo "  --opencode-global     Install for OpenCode (global: ~/.config/opencode/skills/)"
-                echo "  --kilo                Install for Kilo Code (project: .kilo/skills/)"
-                echo "  --kilo-global         Install for Kilo Code (global: ~/.kilo/skills/)"
-                echo "  --trae                Install for Trae (project: .trae/skills/)"
-                echo "  --trae-global         Install for Trae (global: ~/.trae/skills/)"
-                echo "  --all                 Install for all supported agents (default locations)"
-                echo "  (no args)         Interactive selection"
-                exit 0
-                ;;
-            *) echo -e "${RED}Unknown option: $arg${NC}"; exit 1 ;;
-        esac
-    done
-else
-    echo "Select agents to install for:"
-    echo ""
-    echo "  1) Claude Code     (global: ~/.claude/skills/)"
-    echo "  2) OpenAI Codex    (project: .agent-skills/)"
-    echo "  3) Gemini CLI      (project: .gemini/skills/)"
-    echo "  4) Cursor          (project: .cursor/skills/)"
-    echo "  5) GitHub Copilot  (project: .github/skills/)"
-    echo "  6) Windsurf        (project: .windsurf/skills/)"
-    echo "  7) Roo Code        (project: .roo/skills/)"
-    echo "  8) Junie           (project: .junie/skills/)"
-    echo "  9) Goose           (project: .goose/skills/)"
-    echo " 10) Antigravity     (project: .agents/skills/)"
-    echo " 11) OpenCode        (project: .opencode/skills/)"
-    echo " 12) Kilo Code       (project: .kilo/skills/)"
-    echo " 13) Trae            (project: .trae/skills/)"
-    echo " 14) All"
-    echo ""
-    read -rp "Choice [1-14]: " choice
-    case "$choice" in
-        1) INSTALL_CLAUDE=true ;;
-        2) INSTALL_CODEX=true ;;
-        3) INSTALL_GEMINI=true ;;
-        4) INSTALL_CURSOR=true ;;
-        5) INSTALL_COPILOT=true ;;
-        6) INSTALL_WINDSURF=true ;;
-        7) INSTALL_ROO=true ;;
-        8) INSTALL_JUNIE=true ;;
-        9) INSTALL_GOOSE=true ;;
-        10) INSTALL_ANTIGRAVITY=true ;;
-        11) INSTALL_OPENCODE=true ;;
-        12) INSTALL_KILO=true ;;
-        13) INSTALL_TRAE=true ;;
-        14) INSTALL_CLAUDE=true; INSTALL_CODEX=true; INSTALL_GEMINI=true; INSTALL_CURSOR=true; INSTALL_COPILOT=true; INSTALL_WINDSURF=true; INSTALL_ROO=true; INSTALL_JUNIE=true; INSTALL_GOOSE=true; INSTALL_ANTIGRAVITY=true; INSTALL_OPENCODE=true; INSTALL_KILO=true; INSTALL_TRAE=true ;;
-        *) echo -e "${RED}Invalid choice${NC}"; exit 1 ;;
-    esac
-fi
-
+# ---------------------------------------------------------------------------
+# Install helper — copy skills to a target directory
+# ---------------------------------------------------------------------------
 installed=0
 
-# Helper: install skills to a target directory
 install_to_dir() {
-    local agent_name="$1"
-    local target_dir="$2"
+    local target_dir="$1"
     mkdir -p "$target_dir"
     echo ""
-    echo "Installing for $agent_name → $target_dir"
+    echo "Copying skills to $target_dir"
     for skill in "${SKILLS[@]}"; do
         local target="$target_dir/$skill"
-        # Remove broken symlinks
-        if [ -L "$target" ] && [ ! -e "$target" ]; then
-            echo -e "  ${YELLOW}Removing broken symlink: $skill${NC}"
-            rm "$target"
-        fi
-        if [ -L "$target" ] || [ -d "$target" ]; then
-            echo -e "  ${YELLOW}Skipping $skill (already exists)${NC}"
+        local source="$SKILLS_DIR/$skill"
+        if [ -d "$target" ] || [ -L "$target" ]; then
+            # Remove existing (including old symlinks) and re-copy
+            rm -rf "$target"
+            cp -r "$source" "$target"
+            echo -e "  ${YELLOW}~ $skill (updated)${NC}"
         else
-            ln -s "$SKILLS_DIR/$skill" "$target"
+            cp -r "$source" "$target"
             echo -e "  ${GREEN}✓ $skill${NC}"
-            installed=$((installed + 1))
         fi
+        installed=$((installed + 1))
     done
 }
 
-# Claude Code (default: global ~/.claude/skills/, option: project .claude/skills/)
-if [ "$INSTALL_CLAUDE" = true ]; then
-    if [ "$CLAUDE_MODE" = "project" ]; then
-        install_to_dir "Claude Code (project)" "$(pwd)/.claude/skills"
+# ---------------------------------------------------------------------------
+# Build target directories for a selected agent at a given scope/path
+# ---------------------------------------------------------------------------
+# Populates TARGET_DIRS (global array used as accumulator — caller deduplicates)
+TARGET_DIRS=()
+
+add_targets_for_agent() {
+    local idx="$1"       # agent index
+    local scope="$2"     # "global" or "project"
+    local proj_dir="$3"  # project directory (only used when scope=project)
+
+    if [ "$scope" = "global" ]; then
+        TARGET_DIRS+=("$HOME/.agents/skills")
+        # If agent doesn't scan .agents/skills/, also add native global path
+        if [ "${AGENT_SCANS_DOTAGENTS[$idx]}" -eq 0 ] && [ -n "${AGENT_NATIVE_GLOBAL[$idx]}" ]; then
+            TARGET_DIRS+=("${AGENT_NATIVE_GLOBAL[$idx]}")
+        fi
     else
-        install_to_dir "Claude Code" "$HOME/.claude/skills"
+        TARGET_DIRS+=("$proj_dir/.agents/skills")
+        # If agent doesn't scan .agents/skills/, also add native project path
+        if [ "${AGENT_SCANS_DOTAGENTS[$idx]}" -eq 0 ] && [ -n "${AGENT_NATIVE_REL[$idx]}" ]; then
+            TARGET_DIRS+=("$proj_dir/${AGENT_NATIVE_REL[$idx]}")
+        fi
     fi
-fi
+}
 
-# OpenAI Codex (project: .agent-skills/)
-if [ "$INSTALL_CODEX" = true ]; then
-    install_to_dir "OpenAI Codex" "$(pwd)/.agent-skills"
-fi
+# ---------------------------------------------------------------------------
+# CLI argument parsing
+# ---------------------------------------------------------------------------
+SELECTED=()
+for (( i=0; i<AGENT_COUNT; i++ )); do
+    SELECTED+=(0)
+done
 
-# Gemini CLI (default: project .gemini/skills/, option: global ~/.gemini/skills/)
-if [ "$INSTALL_GEMINI" = true ]; then
-    if [ "$GEMINI_MODE" = "global" ]; then
-        install_to_dir "Gemini CLI (global)" "$HOME/.gemini/skills"
-    else
-        install_to_dir "Gemini CLI" "$(pwd)/.gemini/skills"
+CLI_MODE=false
+SCOPE=""        # "" = ask per agent, "global" or "project" = forced
+PROJECT_PATH=""
+
+if [ $# -gt 0 ]; then
+    CLI_MODE=true
+    SCOPE="project"  # default for CLI
+
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --global)  SCOPE="global" ;;
+            --project) SCOPE="project" ;;
+            --path)
+                shift
+                if [ $# -eq 0 ]; then
+                    echo -e "${RED}Error: --path requires a directory argument${NC}"
+                    exit 1
+                fi
+                PROJECT_PATH="$1"
+                ;;
+            --all)
+                for (( i=0; i<AGENT_COUNT; i++ )); do
+                    SELECTED[$i]=1
+                done
+                ;;
+            --help)
+                echo "Usage: install.sh [OPTIONS] [AGENTS]"
+                echo ""
+                echo "Agents:"
+                echo "  --claude        Claude Code"
+                echo "  --codex         OpenAI Codex"
+                echo "  --gemini        Gemini CLI"
+                echo "  --cursor        Cursor"
+                echo "  --copilot       GitHub Copilot"
+                echo "  --windsurf      Windsurf"
+                echo "  --roo           Roo Code"
+                echo "  --junie         Junie"
+                echo "  --goose         Goose"
+                echo "  --opencode      OpenCode"
+                echo "  --trae          Trae"
+                echo "  --kilo          Kilo Code"
+                echo "  --antigravity   Antigravity"
+                echo "  --all           All agents"
+                echo ""
+                echo "Options:"
+                echo "  --global        Install globally for selected agents"
+                echo "  --project       Install at project level (default)"
+                echo "  --path <dir>    Specify project directory (default: current dir)"
+                echo "  --help          Show this help"
+                exit 0
+                ;;
+            *)
+                # Match against agent flags
+                matched=false
+                for (( i=0; i<AGENT_COUNT; i++ )); do
+                    if [ "$1" = "${AGENT_FLAGS[$i]}" ]; then
+                        SELECTED[$i]=1
+                        matched=true
+                        break
+                    fi
+                done
+                if [ "$matched" = false ]; then
+                    echo -e "${RED}Unknown option: $1${NC}"
+                    exit 1
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    # Validate at least one agent selected
+    any_selected=false
+    for (( i=0; i<AGENT_COUNT; i++ )); do
+        if [ "${SELECTED[$i]}" -eq 1 ]; then
+            any_selected=true
+            break
+        fi
+    done
+    if [ "$any_selected" = false ]; then
+        echo -e "${RED}Error: No agents selected. Use --help for usage.${NC}"
+        exit 1
     fi
-fi
 
-# Cursor (project: .cursor/skills/)
-if [ "$INSTALL_CURSOR" = true ]; then
-    install_to_dir "Cursor" "$(pwd)/.cursor/skills"
-fi
-
-# GitHub Copilot (project: .github/skills/)
-if [ "$INSTALL_COPILOT" = true ]; then
-    install_to_dir "GitHub Copilot" "$(pwd)/.github/skills"
-fi
-
-# Windsurf (project: .windsurf/skills/)
-if [ "$INSTALL_WINDSURF" = true ]; then
-    install_to_dir "Windsurf" "$(pwd)/.windsurf/skills"
-fi
-
-# Roo Code (project: .roo/skills/)
-if [ "$INSTALL_ROO" = true ]; then
-    install_to_dir "Roo Code" "$(pwd)/.roo/skills"
-fi
-
-# Junie (project: .junie/skills/)
-if [ "$INSTALL_JUNIE" = true ]; then
-    install_to_dir "Junie" "$(pwd)/.junie/skills"
-fi
-
-# Goose (default: project .goose/skills/, option: global ~/.agents/skills/)
-if [ "$INSTALL_GOOSE" = true ]; then
-    if [ "$GOOSE_MODE" = "global" ]; then
-        install_to_dir "Goose (global)" "$HOME/.agents/skills"
-    else
-        install_to_dir "Goose" "$(pwd)/.goose/skills"
+    # Resolve project path
+    if [ -z "$PROJECT_PATH" ]; then
+        PROJECT_PATH="$(pwd)"
     fi
+
+    # Build target list from CLI selections
+    for (( i=0; i<AGENT_COUNT; i++ )); do
+        if [ "${SELECTED[$i]}" -eq 1 ]; then
+            add_targets_for_agent "$i" "$SCOPE" "$PROJECT_PATH"
+        fi
+    done
 fi
 
-# Antigravity (default: project .agents/skills/, option: global ~/.gemini/config/skills/)
-if [ "$INSTALL_ANTIGRAVITY" = true ]; then
-    if [ "$ANTIGRAVITY_MODE" = "global" ]; then
-        install_to_dir "Antigravity (global)" "$HOME/.gemini/config/skills"
-    else
-        install_to_dir "Antigravity" "$(pwd)/.agents/skills"
+# ---------------------------------------------------------------------------
+# Interactive mode
+# ---------------------------------------------------------------------------
+if [ "$CLI_MODE" = false ]; then
+
+    # --- Step 1: Checkbox selection ---
+    draw_menu() {
+        for (( i=0; i<AGENT_COUNT; i++ )); do
+            local check=" "
+            if [ "${SELECTED[$i]}" -eq 1 ]; then
+                check="x"
+            fi
+            printf "  [%s] %2d) %s\n" "$check" "$((i+1))" "${AGENT_NAMES[$i]}"
+        done
+        echo ""
+    }
+
+    MENU_LINES=$((AGENT_COUNT + 1))  # agent lines + blank line
+
+    echo "Select agents to install for (enter numbers to toggle, Enter to confirm):"
+    echo ""
+    draw_menu
+
+    while true; do
+        read -rp "Select [ex. 1,2,13 or 1-13, a=all, Enter=continue]: " input
+
+        if [ -z "$input" ]; then
+            # Confirm selection
+            break
+        elif [ "$input" = "a" ] || [ "$input" = "A" ]; then
+            # Toggle all on
+            for (( i=0; i<AGENT_COUNT; i++ )); do
+                SELECTED[$i]=1
+            done
+        else
+            # Parse comma-separated tokens, each may be a number or range
+            IFS=',' read -ra tokens <<< "$input"
+            for token in "${tokens[@]}"; do
+                token="$(echo "$token" | tr -d ' ')"
+                if [[ "$token" =~ ^([0-9]+)-([0-9]+)$ ]]; then
+                    # Range
+                    range_start="${BASH_REMATCH[1]}"
+                    range_end="${BASH_REMATCH[2]}"
+                    for (( n=range_start; n<=range_end; n++ )); do
+                        if [ "$n" -ge 1 ] && [ "$n" -le "$AGENT_COUNT" ]; then
+                            idx=$((n-1))
+                            SELECTED[$idx]=$(( 1 - SELECTED[$idx] ))
+                        fi
+                    done
+                elif [[ "$token" =~ ^[0-9]+$ ]]; then
+                    # Single number — toggle
+                    num="$token"
+                    if [ "$num" -ge 1 ] && [ "$num" -le "$AGENT_COUNT" ]; then
+                        idx=$((num-1))
+                        SELECTED[$idx]=$(( 1 - SELECTED[$idx] ))
+                    fi
+                fi
+            done
+        fi
+
+        # Move cursor up and redraw menu
+        printf '\033[%dA' "$((MENU_LINES + 1))"  # +1 for the prompt line
+        draw_menu
+    done
+
+    # Validate at least one selected
+    any_selected=false
+    for (( i=0; i<AGENT_COUNT; i++ )); do
+        if [ "${SELECTED[$i]}" -eq 1 ]; then
+            any_selected=true
+            break
+        fi
+    done
+    if [ "$any_selected" = false ]; then
+        echo -e "${RED}No agents selected. Exiting.${NC}"
+        exit 1
     fi
+
+    # --- Step 2: Per-agent scope questions ---
+    for (( i=0; i<AGENT_COUNT; i++ )); do
+        if [ "${SELECTED[$i]}" -ne 1 ]; then
+            continue
+        fi
+
+        local_name="${AGENT_NAMES[$i]}"
+        echo ""
+        echo "$local_name supports installing skills globally or at a project level."
+        echo "  Global  — available in all your projects"
+        echo "  Project — available in one project folder only"
+        read -rp "Install globally or at project level? [g/p]: " scope_choice
+
+        if [ "$scope_choice" = "g" ] || [ "$scope_choice" = "G" ]; then
+            add_targets_for_agent "$i" "global" ""
+        else
+            # Project scope — ask which folder
+            current_dir="$(pwd)"
+            echo ""
+            echo "Install to this folder? ($current_dir)"
+            echo "  1) Yes, use this folder"
+            echo "  2) Different folder"
+            read -rp "Choice [1-2]: " folder_choice
+
+            if [ "$folder_choice" = "2" ]; then
+                read -rp "Enter project folder path: " custom_path
+                # Expand ~ if present
+                custom_path="${custom_path/#\~/$HOME}"
+                add_targets_for_agent "$i" "project" "$custom_path"
+            else
+                add_targets_for_agent "$i" "project" "$current_dir"
+            fi
+        fi
+    done
 fi
 
-# OpenCode (default: project .opencode/skills/, option: global ~/.config/opencode/skills/)
-if [ "$INSTALL_OPENCODE" = true ]; then
-    if [ "$OPENCODE_MODE" = "global" ]; then
-        install_to_dir "OpenCode (global)" "$HOME/.config/opencode/skills"
-    else
-        install_to_dir "OpenCode" "$(pwd)/.opencode/skills"
+# ---------------------------------------------------------------------------
+# Step 3: Deduplicate targets and copy skills
+# ---------------------------------------------------------------------------
+UNIQUE_DIRS=()
+for dir in "${TARGET_DIRS[@]}"; do
+    # Normalize path (resolve . and ..)
+    dir="$(cd "$(dirname "$dir")" 2>/dev/null && pwd)/$(basename "$dir")" 2>/dev/null || dir="$dir"
+    duplicate=false
+    for udir in "${UNIQUE_DIRS[@]+"${UNIQUE_DIRS[@]}"}"; do
+        if [ "$dir" = "$udir" ]; then
+            duplicate=true
+            break
+        fi
+    done
+    if [ "$duplicate" = false ]; then
+        UNIQUE_DIRS+=("$dir")
     fi
+done
+
+if [ ${#UNIQUE_DIRS[@]} -eq 0 ]; then
+    echo -e "${RED}No target directories resolved. Nothing to install.${NC}"
+    exit 1
 fi
 
-# Kilo Code (default: project .kilo/skills/, option: global ~/.kilo/skills/)
-if [ "$INSTALL_KILO" = true ]; then
-    if [ "$KILO_MODE" = "global" ]; then
-        install_to_dir "Kilo Code (global)" "$HOME/.kilo/skills"
-    else
-        install_to_dir "Kilo Code" "$(pwd)/.kilo/skills"
-    fi
-fi
+for target_dir in "${UNIQUE_DIRS[@]}"; do
+    install_to_dir "$target_dir"
+done
 
-# Trae (default: project .trae/skills/, option: global ~/.trae/skills/)
-if [ "$INSTALL_TRAE" = true ]; then
-    if [ "$TRAE_MODE" = "global" ]; then
-        install_to_dir "Trae (global)" "$HOME/.trae/skills"
-    else
-        install_to_dir "Trae" "$(pwd)/.trae/skills"
-    fi
-fi
-
+# ---------------------------------------------------------------------------
+# Summary
+# ---------------------------------------------------------------------------
 echo ""
-echo -e "${GREEN}Done. $installed skill(s) installed.${NC}"
+echo -e "${GREEN}Done. $installed skill(s) installed across ${#UNIQUE_DIRS[@]} location(s).${NC}"
 echo ""
 echo "Verify by opening your agent and asking:"
 echo '  "What Login Enterprise skills are available?"'

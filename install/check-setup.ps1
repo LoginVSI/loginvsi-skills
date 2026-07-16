@@ -269,20 +269,13 @@ $totalCount = $skills.Count
 # --- detect installed agents ---------------------------------------------------------------
 
 # Each agent: name, project path, global path (or $null if N/A)
+# Primary paths: .agents/skills/ (cross-agent standard) + native paths for agents that don't scan it
 $agentDefs = @(
+    @{ name = 'Cross-agent';      project = '.agents/skills';      global = (Join-Path $HOME '.agents/skills') }
     @{ name = 'Claude Code';      project = '.claude/skills';      global = (Join-Path $HOME '.claude/skills') }
-    @{ name = 'OpenAI Codex';     project = '.agent-skills';       global = $null }
-    @{ name = 'Gemini CLI';       project = '.gemini/skills';      global = (Join-Path $HOME '.gemini/skills') }
-    @{ name = 'Cursor';           project = '.cursor/skills';      global = $null }
-    @{ name = 'GitHub Copilot';   project = '.github/skills';      global = $null }
-    @{ name = 'Windsurf';         project = '.windsurf/skills';    global = $null }
-    @{ name = 'Roo Code';         project = '.roo/skills';         global = $null }
-    @{ name = 'Junie';            project = '.junie/skills';       global = $null }
-    @{ name = 'Goose';            project = '.goose/skills';       global = (Join-Path $HOME '.agents/skills') }
-    @{ name = 'Antigravity';      project = '.agents/skills';      global = (Join-Path (Join-Path $HOME '.gemini') 'config/skills') }
-    @{ name = 'OpenCode';         project = '.opencode/skills';    global = (Join-Path (Join-Path $HOME '.config') 'opencode/skills') }
-    @{ name = 'Kilo Code';        project = '.kilo/skills';        global = (Join-Path $HOME '.kilo/skills') }
+    @{ name = 'Junie';            project = '.junie/skills';       global = (Join-Path $HOME '.junie/skills') }
     @{ name = 'Trae';             project = '.trae/skills';        global = (Join-Path $HOME '.trae/skills') }
+    @{ name = 'Kilo Code';        project = '.kilo/skills';        global = (Join-Path $HOME '.kilo/skills') }
 )
 
 # Check for at least one login-enterprise-* skill directory in a path
