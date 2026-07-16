@@ -39,16 +39,21 @@ Describe 'ConvertFrom-DumpHierarchy' {
         $tb | Should -Not -BeNullOrEmpty
         $tb.className | Should -Be ''
     }
-    It 'computes xpath from nesting' {
+    It 'computes UIA xpath from nesting' {
         $controls = @(ConvertFrom-DumpHierarchy -Path $script:dumpFile)
         $doc = $controls | Where-Object { $_.controlType -eq 'Document' }
-        $doc.xpath | Should -Be 'Pane:NotepadTextBox/Document:RichEditD2DPT'
+        $doc.xpath | Should -Be '/Pane/Document'
+    }
+    It 'computes recorder xpath from nesting' {
+        $controls = @(ConvertFrom-DumpHierarchy -Path $script:dumpFile)
+        $doc = $controls | Where-Object { $_.controlType -eq 'Document' }
+        $doc.recorderXpath | Should -Be 'Pane:NotepadTextBox/Document:RichEditD2DPT'
     }
     It 'generates suggestedFinder with FindAutomationElementByXPathOrInformation' {
         $controls = @(ConvertFrom-DumpHierarchy -Path $script:dumpFile)
         $doc = $controls | Where-Object { $_.controlType -eq 'Document' }
         $doc.suggestedFinder | Should -Match 'FindAutomationElementByXPathOrInformation'
-        $doc.suggestedFinder | Should -Match 'xpath: "Pane:NotepadTextBox/Document:RichEditD2DPT"'
+        $doc.suggestedFinder | Should -Match 'xpath: "/Pane/Document"'
         $doc.suggestedFinder | Should -Match 'className: "RichEditD2DPT"'
         $doc.suggestedFinder | Should -Match 'controlType: "Document"'
     }

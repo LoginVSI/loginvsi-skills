@@ -68,7 +68,8 @@ function ConvertFrom-DumpHierarchy {
             }
             $stack.Add(@{ controlType = $controlType; className = $className })
 
-            # Build xpath in engine format: ControlType:ClassName/ControlType:ClassName (no leading slash)
+            # Build recorder-style xpath: ControlType:ClassName/ControlType:ClassName (no leading slash)
+            # Used by FindControlWithXPath.
             # IMPORTANT: Skip the root window (depth 0) since MainWindow.FindControlWithXPath searches
             # relative to MainWindow, not from the desktop root.
             $xpathStack = if ($stack.Count -gt 1) { $stack | Select-Object -Skip 1 } else { @() }
@@ -78,13 +79,19 @@ function ConvertFrom-DumpHierarchy {
                 if ($cn) { "$ct`:$cn" } else { $ct }
             }) -join '/'
 
+            # Build UI Automation-style xpath: /ControlType/ControlType (with leading slash)
+            # Used by FindAutomationElementByXPathOrInformation — different format from recorder xpath.
+            $uiaXpath = '/' + (($xpathStack | ForEach-Object {
+                $_['controlType'] -replace '\s+', ''
+            }) -join '/')
+
             # Build suggestedFinder using FindAutomationElementByXPathOrInformation
             # For root window (depth 0), use MainWindow directly
             # For other controls, use FindAutomationElementByXPathOrInformation with all available parameters
             $finder = if ($depth -eq 0) {
                 "MainWindow"
             } else {
-                "FindAutomationElementByXPathOrInformation(xpath: `"$xpath`", automationId: `"`", className: `"$className`", name: `"$nameCleaned`", controlType: `"$controlType`")"
+                "FindAutomationElementByXPathOrInformation(xpath: `"$uiaXpath`", automationId: `"`", className: `"$className`", name: `"$nameCleaned`", controlType: `"$controlType`")"
             }
 
             $controls.Add([pscustomobject]@{
@@ -92,7 +99,8 @@ function ConvertFrom-DumpHierarchy {
                 automationId    = ''
                 className       = $className
                 controlType     = $controlType
-                xpath           = $xpath
+                xpath           = $uiaXpath
+                recorderXpath   = $xpath
                 suggestedFinder = $finder
             })
         }
