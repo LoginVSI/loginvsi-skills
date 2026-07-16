@@ -215,3 +215,4 @@ only authoritative answer. See `references/validation-rules.md`.
 | Whitespace in a timer/screenshot name | `SpacelessNameDiagnostic` (Error) |
 | Treating `compiles: false` as "no timer problems" | Timer analysis did not run; fix the compiler errors first |
 | Claiming validated without running the tool on Windows | Dishonest result — state the limitation instead |
+| AD0001 warning on a compiling script | Known ScriptAnalyzer limitation — timer analysis may be incomplete for scripts with helper methods, while loops, or try/catch. The script is likely valid; the analyzer crashed, not the script. |

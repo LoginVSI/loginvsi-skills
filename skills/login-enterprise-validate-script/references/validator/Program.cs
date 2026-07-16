@@ -104,7 +104,13 @@ try
             Rules.Categorize(d.Id),
             d.GetMessage()))
         // When the script doesn't compile, drop the downstream analyzer crashes (AD0001) as noise.
+        // When it DOES compile, downgrade AD0001 to Warning — the analyzer crashed on a valid
+        // script (known ScriptAnalyzer bug with helpers/loops/try-catch), so don't block validation.
         .Where(f => compiles || f.category != "analyzer-error")
+        .Select(f => compiles && f.category == "analyzer-error"
+            ? f with { severity = nameof(DiagnosticSeverity.Warning),
+                       message = $"[Analyzer internal error — timer analysis may be incomplete] {f.message}" }
+            : f)
         .ToList();
 
     Console.WriteLine(JsonSerializer.Serialize(new Report(compiles, findings), new JsonSerializerOptions

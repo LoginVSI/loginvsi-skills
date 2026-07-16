@@ -52,6 +52,11 @@ reimplement these in text:
   analyzer uses source position ordering, not full branch analysis.
 - **`IDE0051`** (unused private member) is suppressed by the host and by the validator, matching
   ScriptEditor behavior.
+- **TimerAnalyzer crashes on certain syntax structures.** The `GetMethodName` helper in
+  `TimerAnalyzerExtensions` assumes a specific parent node shape when walking the syntax tree.
+  Scripts containing helper methods, `while` loops, or `try`/`catch` blocks can trigger a
+  `NullReferenceException` (reported as `AD0001`). The validator downgrades this to a warning
+  when the script compiles — the script is likely valid but timer analysis is incomplete.
 
 ## Reserved timer names
 
